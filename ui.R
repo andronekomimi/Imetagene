@@ -72,9 +72,10 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                               multiple = FALSE,
                                                               bsCollapsePanel("Load existing metagene object", 
                                                                               list(
-                                                                                shinyFilesButton('loadMetagene', 'Choose file', 
+                                                                                shinyFilesButton('loadMetagene', 'Choose file',
                                                                                                  'Please select a file', FALSE),
-                                                                                textInput(inputId = "path_load_metagene", label = "")
+                                                                                textInput(inputId = "path_load_metagene", label = ""),
+                                                                                bsAlert("load_alert")
                                                                               ), 
                                                                               style = "primary"),
                                                               bsCollapsePanel("Create a new metagene object", 
@@ -83,27 +84,36 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                   column(width = 6,
                                                                                          list(
                                                                                            shinyFilesButton('bams', 'Select BAM files', 
-                                                                                                            'Please select a file', FALSE),
+                                                                                                            'Please select a file', TRUE),
                                                                                            br(),br(),
                                                                                            verbatimTextOutput("bam_list")
+                                                                                           #  ,
+                                                                                           #  bsButton('clear_bams', 'Clear BAM files', 
+                                                                                           #           , style = "btn btn-primary", disabled = FALSE)
                                                                                          )
                                                                                   ),
                                                                                   column(width = 6,
                                                                                          list(
-                                                                                           shinyFilesButton('regions', 'Select BED files', 
-                                                                                                            'Please select a file', FALSE),
+                                                                                           shinyFilesButton('beds', 'Select BED files', 
+                                                                                                            'Please select a file', TRUE),
                                                                                            br(),br(),
                                                                                            verbatimTextOutput("bed_list")
+                                                                                           #  ,
+                                                                                           #  bsButton('clear_beds', 'Clear BED files', 
+                                                                                           #           , style = "btn btn-primary", disabled = FALSE)
                                                                                          )
                                                                                   )
                                                                                 ),
-                                                                                br(),br(),
+                                                                                br(),hr(),br(),
                                                                                 fluidRow(
                                                                                   column(width = 3,
-                                                                                         bsButton(inputId = "runMetagene", label = "Run metagene", style = "btn btn-primary", disabled = TRUE)),
+                                                                                         bsButton(inputId = "runMetagene", label = "Run metagene", style = "btn btn-primary", disabled = FALSE)),
                                                                                   column(width = 8,
                                                                                          bsButton(inputId = "saveMetagene", label = "Save metagene", style = "btn btn-primary", disabled = TRUE))
-                                                                                )
+                                                                                ),
+                                                                                br(),
+                                                                                bsAlert("run_alert"),
+                                                                                uiOutput(outputId = "resizingUI")
                                                                               ), 
                                                                               style = "primary")
                                                    ),
