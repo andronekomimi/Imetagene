@@ -40,138 +40,190 @@ customNumInputs<-function(id1, id2, before = "", after = "", value1 = "", value2
 app_name = "Imetagene"
 
 shinyUI(fluidPage(theme = shinytheme("flatly"),
-  #   tags$head(
-  #     tags$link(rel = "stylesheet", type = "text/css", href = "bootstrap.css"),
-  #     tags$link(rel = "icon", type = "image/x-icon", href = "logo.png")
-  #   ),
-  
-  headerPanel(app_name),
-  
-  sidebarLayout(
-    NULL,
-    mainPanel(
-      p("This application enables to use interactively the metagene package.
+                  tags$head(
+                    tags$style(HTML("     
+                  h1 {
+                  font-family: 'Courier New', Courier, monospace;
+                  }
+                  .navbar-brand {
+                  font-family: 'Courier New', Courier, monospace;
+                  float:left;
+                  }
+                  "))
+                  ),
+                  
+                  headerPanel(app_name),
+                  sidebarLayout(
+                    NULL,
+                    mainPanel(
+                      p("This application enables to use interactively the metagene package.
         This R package produces Metagene-like plots to compare the behavior of 
         DNA-interacting proteins at selected groups of features."),
-      fluidRow(
-        column(width = 12,
-               navbarPage("I-metagene",
-                          tabPanel("INPUTS",
-                                   helpText("There is no hard limit in the number of BAM files that can be included in an analysis 
+                      fluidRow(
+                        column(width = 12,
+                               navbarPage("Imetagene",
+                                          tabPanel("INPUTS",
+                                                   helpText("There is no hard limit in the number of BAM files that can be included in an analysis 
                                              (but with too many BAM files, memory may become an issue). BAM files must be indexed.
                                               For instance, if you use a file names file.bam, a file named file.bam.bai must be present in the same directory."),
-                                   helpText("To compare custom regions of interest, it is possible to use a list of one or more BED files."),
-                                   bsCollapse(id = "inputs", 
-                                              open = c("Load existing metagene object"), 
-                                              multiple = FALSE,
-                                              bsCollapsePanel("Load existing metagene object", 
-                                                              list(
-                                                                shinyFilesButton('loadMetagene', 'Choose file', 
-                                                                                 'Please select a file', FALSE),
-                                                                textInput(inputId = "path_load_metagene", label = "")
-                                                              ), 
-                                                              style = "primary"),
-                                              bsCollapsePanel("Create a new metagene object", 
-                                                              list(
-                                                                fluidRow(
-                                                                  column(width = 6,
-                                                                         list(
-                                                                           shinyFilesButton('bams', 'Select BAM files', 
-                                                                                            'Please select a file', FALSE),
-                                                                           br(),br(),
-                                                                           verbatimTextOutput("bam_list")
-                                                                         )
-                                                                  ),
-                                                                  column(width = 6,
-                                                                         list(
-                                                                           shinyFilesButton('regions', 'Select BED files', 
-                                                                                            'Please select a file', FALSE),
-                                                                           br(),br(),
-                                                                           verbatimTextOutput("bed_list")
-                                                                         )
-                                                                  )
-                                                                ),
-                                                                br(),br(),
-                                                                fluidRow(
-                                                                  column(width = 4,
-                                                                         bsButton(inputId = "runMetagene", label = "Run metagene", style = "btn btn-primary", disabled = TRUE)),
-                                                                  column(width = 8,
-                                                                         bsButton(inputId = "saveMetagene", label = "Save metagene", style = "btn btn-primary", disabled = TRUE))
-                                                                )
-                                                              ), 
-                                                              style = "primary")
-                                   ),
-                                   bsButton(inputId = "go2design", label = "Next step", style = "btn btn-primary", disabled = TRUE, icon = icon("arrow-right"))
-                          ),
-                          tabPanel("DESIGN",
-                                   helpText("A design group contains a set of BAM files that, when pull together, 
+                                                   helpText("To compare custom regions of interest, it is possible to use a list of one or more BED files."),
+                                                   bsCollapse(id = "inputs", 
+                                                              open = c("Load existing metagene object"), 
+                                                              multiple = FALSE,
+                                                              bsCollapsePanel("Load existing metagene object", 
+                                                                              list(
+                                                                                shinyFilesButton('loadMetagene', 'Choose file', 
+                                                                                                 'Please select a file', FALSE),
+                                                                                textInput(inputId = "path_load_metagene", label = "")
+                                                                              ), 
+                                                                              style = "primary"),
+                                                              bsCollapsePanel("Create a new metagene object", 
+                                                                              list(
+                                                                                fluidRow(
+                                                                                  column(width = 6,
+                                                                                         list(
+                                                                                           shinyFilesButton('bams', 'Select BAM files', 
+                                                                                                            'Please select a file', FALSE),
+                                                                                           br(),br(),
+                                                                                           verbatimTextOutput("bam_list")
+                                                                                         )
+                                                                                  ),
+                                                                                  column(width = 6,
+                                                                                         list(
+                                                                                           shinyFilesButton('regions', 'Select BED files', 
+                                                                                                            'Please select a file', FALSE),
+                                                                                           br(),br(),
+                                                                                           verbatimTextOutput("bed_list")
+                                                                                         )
+                                                                                  )
+                                                                                ),
+                                                                                br(),br(),
+                                                                                fluidRow(
+                                                                                  column(width = 3,
+                                                                                         bsButton(inputId = "runMetagene", label = "Run metagene", style = "btn btn-primary", disabled = TRUE)),
+                                                                                  column(width = 8,
+                                                                                         bsButton(inputId = "saveMetagene", label = "Save metagene", style = "btn btn-primary", disabled = TRUE))
+                                                                                )
+                                                                              ), 
+                                                                              style = "primary")
+                                                   ),
+                                                   bsButton(inputId = "go2design", label = "Next step", style = "btn btn-primary", disabled = TRUE, icon = icon("arrow-right"))
+                                          ),
+                                          tabPanel("DESIGN",
+                                                   helpText("A design group contains a set of BAM files that, when pull together, 
                                             represent a logical analysis. Furthermore, a design group contains 
                                             the relationship between every BAM files present."),
-                                   helpText("Samples (with or without replicates) and controls can be assigned to a same design group."),
-                                   helpText("There can be as many groups as necessary. A BAM file can be assigned to more than one group."),
-                                   bsCollapse(id = "design", 
-                                              open = c("Load existing design file"), 
-                                              multiple = FALSE,
-                                              bsCollapsePanel("Load existing design file", 
-                                                              list(
-                                                                helpText("ADD HELP BUBBLE"),
-                                                                shinyFilesButton('loadDesign', 'Choose file', 
-                                                                                 'Please select a file', FALSE),
-                                                                textInput(inputId = "path_load_design", label = "")
-                                                              ), 
-                                                              style = "primary"),
-                                              bsCollapsePanel("Create a new design", 
-                                                              list(
-                                                                textInput(inputId = "exp_name", label = "Experience name", value = "Enter text..."),
-                                                                fluidRow(
-                                                                  column(width = 6,
-                                                                         list(
-                                                                           h3("CHIP")
-                                                                         )
-                                                                  ),
-                                                                  column(width = 6,
-                                                                         list(
-                                                                           h3("CONTROLS")
-                                                                         )
-                                                                  )
-                                                                ),
-                                                                br(),br(),
-                                                                bsButton(inputId = "saveExp", label = "Save Experiment", style = "btn btn-primary", disabled = TRUE),
-                                                                br(),br(),
-                                                                dataTableOutput('design'),
-                                                                bsButton(inputId = "saveDesign", label = "Save Design", style = "btn btn-primary", disabled = TRUE)
-                                                              ), 
-                                                              style = "primary")
-                                   ),
-                                   bsButton(inputId = "go2matrix", label = "Next step", style = "btn btn-primary", disabled = TRUE, icon = icon("arrow-right"))
-                          ),
-                          tabPanel("MATRIX",
-                                   helpText("PUT SOME DESCRIPTION HERE"),
-                                   bsCollapse(id = "MATRIX", 
-                                              open = c("Matrix parameters"), 
-                                              multiple = FALSE,
-                                              bsCollapsePanel("Matrix parameters", 
-                                                              list(
-                                                                customNumInputs(id1="bin_count", id2 = "bin_size",
-                                                                                before = "bin count ", 
-                                                                                after = "or bin size", 
-                                                                                value1 = 10,
-                                                                                value2 = 100),
-                                                                br(),br(),
-                                                                selectInput(inputId = "noise", choices = c("NOISE1","NOISE2","NOISE3"), label = "noise removal"),
-                                                                selectInput(inputId = "norm", choices = c("NORM1","NORM2","NORM3"), label = "normalization"),
-                                                                checkboxInput(inputId = "flip", value = FALSE, label = "flip regions"),
-                                                                checkboxInput(inputId = "design", value = TRUE, label = "use design")
+                                                   helpText("Samples (with or without replicates) and controls can be assigned to a same design group."),
+                                                   helpText("There can be as many groups as necessary. A BAM file can be assigned to more than one group."),
+                                                   bsCollapse(id = "design", 
+                                                              open = c("Load existing design file"), 
+                                                              multiple = FALSE,
+                                                              bsCollapsePanel("Load existing design file", 
+                                                                              list(
+                                                                                helpText("ADD HELP BUBBLE"),
+                                                                                shinyFilesButton('loadDesign', 'Choose file', 
+                                                                                                 'Please select a file', FALSE),
+                                                                                textInput(inputId = "path_load_design", label = "")
+                                                                              ), 
+                                                                              style = "primary"),
+                                                              bsCollapsePanel("Create a new design", 
+                                                                              list(
+                                                                                textInput(inputId = "exp_name", label = "Experience name", value = "Enter text..."),
+                                                                                fluidRow(
+                                                                                  column(width = 6,
+                                                                                         list(
+                                                                                           h3("CHIP")
+                                                                                         )
+                                                                                  ),
+                                                                                  column(width = 6,
+                                                                                         list(
+                                                                                           h3("CONTROLS")
+                                                                                         )
+                                                                                  )
+                                                                                ),
+                                                                                br(),br(),
+                                                                                bsButton(inputId = "saveExp", label = "Save Experiment", style = "btn btn-primary", disabled = TRUE),
+                                                                                br(),br(),
+                                                                                dataTableOutput('design'),
+                                                                                bsButton(inputId = "saveDesign", label = "Save Design", style = "btn btn-primary", disabled = TRUE)
+                                                                              ), 
+                                                                              style = "primary")
+                                                   ),
+                                                   bsButton(inputId = "go2matrix", label = "Next step", style = "btn btn-primary", disabled = TRUE, icon = icon("arrow-right"))
+                                          ),
+                                          tabPanel("MATRIX",
+                                                   helpText("PUT SOME DESCRIPTION HERE"),
+                                                   bsCollapse(id = "matrix", 
+                                                              open = c("Matrix parameters"), 
+                                                              multiple = FALSE,
+                                                              bsCollapsePanel("Matrix parameters", 
+                                                                              list(
+                                                                                customNumInputs(id1="bin_count", id2 = "bin_size",
+                                                                                                before = "bin count ", 
+                                                                                                after = "or bin size", 
+                                                                                                value1 = 10,
+                                                                                                value2 = 100),
+                                                                                br(),br(),
+                                                                                selectInput(inputId = "noise", choices = c("NOISE1","NOISE2","NOISE3"), label = "noise removal"),
+                                                                                selectInput(inputId = "norm", choices = c("NORM1","NORM2","NORM3"), label = "normalization"),
+                                                                                checkboxInput(inputId = "flip", value = FALSE, label = "flip regions"),
+                                                                                checkboxInput(inputId = "design", value = TRUE, label = "use design"),
+                                                                                br(),br(),
+                                                                                fluidRow(
+                                                                                  column(width = 3,
+                                                                                         bsButton(inputId = "runMatrix", label = "Produce matrix", style = "btn btn-primary", disabled = TRUE)),
+                                                                                  column(width = 8,
+                                                                                         bsButton(inputId = "updateMetagene", label = "Update metagene", style = "btn btn-primary", disabled = TRUE))
+                                                                                )
+                                                                              )
+                                                                              ,style = "primary"
                                                               )
-                                                              ,style = "primary"
-                                              )
-                                   )
-                          ),tabPanel("PLOT",
-                                     h3("test4")
-                          )
-               )
-        )
-      ), width="100%",footer()
-    )
-  )
+                                                   )
+                                          ),tabPanel("PLOT",
+                                                     helpText("PUT SOME DESCRIPTION HERE"),
+                                                     bsCollapse(id = "plot", 
+                                                                open = c("Plot parameters"), 
+                                                                multiple = FALSE,
+                                                                bsCollapsePanel("Plot parameters", 
+                                                                                list(
+                                                                                  fluidRow(
+                                                                                    column(width = 6,
+                                                                                           list(
+                                                                                             selectInput(inputId = "plot_regions", 
+                                                                                                         label = "Select the regions you want to draw",
+                                                                                                         selected = NULL,
+                                                                                                         multiple = TRUE,
+                                                                                                         width = '100%',
+                                                                                                         selectize = TRUE,
+                                                                                                         choices = c("REGION1","REGION2","REGION3"))
+                                                                                           )
+                                                                                    ),
+                                                                                    column(width = 6,
+                                                                                           list(
+                                                                                             textInput(inputId = "plot_title", label = "plot title", value = "Enter text..."),
+                                                                                             sliderInput(inputId = "alpha", label = "alpha", min = 0, max = 1, value = 0),
+                                                                                             numericInput(inputId = "sample_count", label = "sample count",value = 0)
+                                                                                           )
+                                                                                    )
+                                                                                  ),
+                                                                                  br(),br(),
+                                                                                  bsButton(inputId = "runPlot", label = "Plot", style = "btn btn-primary", disabled = FALSE),
+                                                                                  br(),br(),
+                                                                                  plotOutput(outputId = "plot"),
+                                                                                  fluidRow(
+                                                                                    column(width = 6,
+                                                                                           bsButton(inputId = "savePlotPNG", label = "Export PNG", style = "btn btn-primary", disabled = TRUE)),
+                                                                                    column(width = 6,
+                                                                                           bsButton(inputId = "savePlotPDF", label = "Export PDF", style = "btn btn-primary", disabled = TRUE))
+                                                                                  )
+                                                                                )
+                                                                                ,style = "primary"
+                                                                )
+                                                     )
+                                          )
+                               )
+                        )
+                      ), width="100%",footer()
+                    )
+                  )
 ))
