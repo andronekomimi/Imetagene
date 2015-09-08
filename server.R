@@ -4,8 +4,8 @@ source("helper.R")
 roots <- c(wd='.')
 bams <- NULL
 beds <- NULL
-
-
+sizes <- 0
+metagene_object <- NULL
 
 shinyServer(function(input, output, session) {
   
@@ -20,12 +20,14 @@ shinyServer(function(input, output, session) {
     ## SOME CHECK : 
     if(nrow(pfile) > 0) {
       f <- load(as.character(pfile$datapath))
-      loaded_mg <- eval(as.symbol(f))
-      if(ismetagene(loaded_mg)) {
+      metagene_object <<- eval(as.symbol(f))
+      if(ismetagene(metagene_object)) {
         
         createAlert(session, "load_alert", "load_ok", title = "Loading status",
                     content = "Metagene object successfully loaded", append = FALSE, dismiss = TRUE,
                     style = "info")
+        updateButton(session, inputId = "go2design", disabled = FALSE)
+        
       } else {
         
         createAlert(session, "load_alert", "load_fail", title = "Loading status",
@@ -131,12 +133,12 @@ shinyServer(function(input, output, session) {
     
     
     ## CHECK 4 : REGIONS SIZE
-    sizes <- getBEDregionSize(beds)
+    sizes <<- getBEDregionSize(beds)
     
     if(sizes$min != sizes$max){ # WE NEED TO RESIZE 
       can_run = FALSE
       msg <- paste0("All your regions must have the same size. Do you want to shrink all the regions to ", sizes$min, 
-                   "bp or extand to ", sizes$max, "bp ?")
+                    "bp or extand to ", sizes$max, "bp ?")
       createAlert(session, anchorId = "run_alert", alertId = "run_fail4", title = "Metagene status",
                   content = paste0("Some of the wanted regions can't be found in the following BAM files : ", msg), append = FALSE, dismiss = TRUE,
                   style="warning")
@@ -153,22 +155,26 @@ shinyServer(function(input, output, session) {
           )
         )
       })
+      
+      #updateButton(session,inputId = "runMetagene", disabled = TRUE)
+      return(NULL)
     }
     
-    
-    print(can_run)
     if(can_run) {
       closeAlert(session, alertId = "run_alert")
       createAlert(session, "run_alert", "run_succeed", title = "Metagene status",
                   content = msg, append = FALSE, dismiss = TRUE,
-                  style="success")
+                  style="info")
       
       updateButton(session,inputId = "runMetagene", "Metagene running...", disabled = TRUE)
       
       tryCatch ({
-        #new_mg <- metagene$new(beds, bams)
+        metagene_object <<- metagene$new(beds, bams)
+        createAlert(session, "run_alert", "run_succeed1", title = "Metagene status",
+                    content = "Done running metagene !", append = FALSE, dismiss = TRUE,
+                    style = "success")
         updateButton(session, inputId = "go2design", disabled = FALSE)
-        updateButton(session, inputId = "saveMetagene", disabled = FALSE)
+        #updateButton(session, inputId = "saveMetagene", disabled = FALSE)
         
       },error = function(e) {
         print(e)
@@ -183,6 +189,85 @@ shinyServer(function(input, output, session) {
   observe({
     runMetagene()
   })
+  
+  
+  extandRegionsAndRunMetagene <- eventReactive(input$extand,{
+    updateButton(session,inputId = "extand", "Extanding...", disabled = TRUE)
+    updateButton(session,inputId = "shrink", disabled = TRUE)
+    updateButton(session,inputId = "runMetagene", "Metagene running...", disabled = TRUE)
+    regions <- resizeRegions(beds,sizes$max)
+    
+    tryCatch ({
+      metagene_object <<- metagene$new(regions, bams)
+      createAlert(session, "run_alert", "run_succeed2", title = "Metagene status",
+                  content = "Done running metagene !", append = FALSE, dismiss = TRUE,
+                  style = "success")
+      updateButton(session, inputId = "go2design", disabled = FALSE)
+      #updateButton(session, inputId = "saveMetagene", disabled = FALSE)
+      
+    },error = function(e) {
+      print(e)
+    },warning = function(w) {
+      print(w)
+    })
+    
+  })
+  
+  
+  shrinkRegionsAndRunMetagene <- eventReactive(input$shrink,{
+    updateButton(session,inputId = "shrink", "Shrinking...", disabled = TRUE)
+    updateButton(session,inputId = "extand", disabled = TRUE)
+    updateButton(session,inputId = "runMetagene", "Metagene running...", disabled = TRUE)
+    
+    regions <- resizeRegions(bed_files = beds,new_size = sizes$min)
+    
+    tryCatch ({
+      metagene_object <<- metagene$new(regions, bams)
+      createAlert(session, "run_alert", "run_succeed3", title = "Metagene status",
+                  content = "Done running metagene !", append = FALSE, dismiss = TRUE,
+                  style = "success")
+      updateButton(session, inputId = "go2design", disabled = FALSE)
+      #updateButton(session, inputId = "saveMetagene", disabled = FALSE)
+      
+    },error = function(e) {
+      print(e)
+    },warning = function(w) {
+      print(w)
+    })
+  })
+  
+  observe({
+    extandRegionsAndRunMetagene()
+  })
+  
+  observe({
+    shrinkRegionsAndRunMetagene()
+  })
+  
+  
+  goToDesign <- eventReactive(input$go2design,{
+    print(names(metagene_object$coverages))
+  })
+  
+  observe({
+    goToDesign()
+  })
+  
+  output$saveMetagene <- downloadHandler(
+    filename = function() { 
+      paste("metagene_",format(Sys.time(), "%m_%d_%y_%H_%M_%S"),'.Rda', sep='') 
+    },
+    content = function(file) {
+      save(metagene_object, file = file)
+    }
+  )
+  
+  observeEvent(input$go2design, {
+    # renvoyer sur le panel principal
+    session$sendCustomMessage("myCallbackHandler", "1")
+  })
+  
+  
   
   
 })

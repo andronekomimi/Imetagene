@@ -53,3 +53,23 @@ getBEDregionSize <- function(beds) {
   sizes <- list(min = min_size,max = max_size)
   return(sizes)
 }
+
+
+resizeRegions <- function(bed_files, new_size) {
+  regions <- c()
+  
+  for(bed in bed_files){
+    df <- read.table(file = bed, header = FALSE)
+    regions <- c(regions, 
+                 GRanges(seqnames = df[,1], ranges = IRanges(df[,2],df[,3])))
+  }
+  
+  for(i in seq(1,length(regions))) {
+    regions[[i]] <- resize(regions[[i]], width = new_size, fix = "center")
+  }
+  
+  regions
+}
+
+
+

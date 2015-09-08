@@ -41,15 +41,32 @@ app_name = "Imetagene"
 
 shinyUI(fluidPage(theme = shinytheme("flatly"),
                   tags$head(
-                    tags$style(HTML("     
-                  h1 {
-                  font-family: 'Courier New', Courier, monospace;
-                  }
-                  .navbar-brand {
-                  font-family: 'Courier New', Courier, monospace;
-                  float:left;
-                  }
-                  "))
+                    tags$style(
+                      HTML("     
+                      h1 {
+                          font-family: 'Courier New', Courier, monospace;
+                      }
+                      .navbar-brand {
+                          font-family: 'Courier New', Courier, monospace;
+                          float:left;
+                      }
+                    ")
+                    ),
+                    tags$script('Shiny.addCustomMessageHandler("myCallbackHandler",
+                       function(typeMessage) {console.log(typeMessage)
+                           if(typeMessage == 1){
+                              $("a:contains(DESIGN)").click();
+                           } else {
+                              if(typeMessage == 2) {
+                                  $("a:contains(MATRIX)").click();
+                              } else {
+                                if(typeMessage == 3) {
+                                    $("a:contains(PLOT)").click();
+                                }
+                              }
+                           }
+                        });')  
+                    
                   ),
                   
                   headerPanel(app_name),
@@ -109,7 +126,7 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                   column(width = 3,
                                                                                          bsButton(inputId = "runMetagene", label = "Run metagene", style = "btn btn-primary", disabled = FALSE)),
                                                                                   column(width = 8,
-                                                                                         bsButton(inputId = "saveMetagene", label = "Save metagene", style = "btn btn-primary", disabled = TRUE))
+                                                                                         downloadButton(outputId = "saveMetagene", label = "Save metagene", class = "btn btn-primary"))
                                                                                 ),
                                                                                 br(),
                                                                                 bsAlert("run_alert"),
