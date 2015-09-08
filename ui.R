@@ -148,28 +148,54 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                               bsCollapsePanel("Load existing design file", 
                                                                               list(
                                                                                 helpText("ADD HELP BUBBLE"),
-                                                                                shinyFilesButton('loadDesign', 'Choose file', 
-                                                                                                 'Please select a file', FALSE),
-                                                                                textInput(inputId = "path_load_design", label = "")
+                                                                                fluidRow(
+                                                                                  column(width = 4,
+                                                                                         list(
+                                                                                           shinyFilesButton('loadDesign', 'Choose file', 
+                                                                                                            'Please select a file', FALSE),
+                                                                                           textInput(inputId = "path_load_design", label = "")
+                                                                                         )
+                                                                                  ),
+                                                                                  column(width = 2,
+                                                                                         list(
+                                                                                           checkboxInput(inputId = "header", label = "File with header", value = TRUE)
+                                                                                         )
+                                                                                  )
+                                                                                ),
+                                                                                dataTableOutput('loaded_design'),
+                                                                                bsAlert("load_alert_d")
                                                                               ), 
                                                                               style = "primary"),
                                                               bsCollapsePanel("Create a new design", 
                                                                               list(
-                                                                                textInput(inputId = "exp_name", label = "Experience name", value = "Enter text..."),
+                                                                                textInput(inputId = "exp_name", label = "Experience name", value = "Exp1"),
                                                                                 fluidRow(
                                                                                   column(width = 6,
                                                                                          list(
-                                                                                           h3("CHIP")
+                                                                                           selectInput(inputId = "chips", 
+                                                                                                       label = "Select the CHiP for your experiment",
+                                                                                                       selected = NULL,
+                                                                                                       multiple = TRUE,
+                                                                                                       width = '100%',
+                                                                                                       selectize = TRUE,
+                                                                                                       choices = c(''))
                                                                                          )
                                                                                   ),
                                                                                   column(width = 6,
                                                                                          list(
-                                                                                           h3("CONTROLS")
+                                                                                           selectInput(inputId = "ctrls", 
+                                                                                                       label = "Select the associated controls for your experiment",
+                                                                                                       selected = NULL,
+                                                                                                       multiple = TRUE,
+                                                                                                       width = '100%',
+                                                                                                       selectize = TRUE,
+                                                                                                       choices = c(''))
                                                                                          )
                                                                                   )
                                                                                 ),
                                                                                 br(),br(),
-                                                                                bsButton(inputId = "saveExp", label = "Save Experiment", style = "btn btn-primary", disabled = TRUE),
+                                                                                bsAlert("save_exp_alert"),
+                                                                                bsButton(inputId = "saveExp", label = "Save Experiment", style = "btn btn-primary", disabled = FALSE),
                                                                                 br(),br(),
                                                                                 dataTableOutput('design'),
                                                                                 bsButton(inputId = "saveDesign", label = "Save Design", style = "btn btn-primary", disabled = TRUE)

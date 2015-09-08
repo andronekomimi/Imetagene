@@ -72,4 +72,13 @@ resizeRegions <- function(bed_files, new_size) {
 }
 
 
+extract_file_name <- function(x){
+  fn <- strsplit(x = x , split = .Platform$file.sep)[[1]]
+  fn[length(fn)]
+}
+
+
+
+
+
 

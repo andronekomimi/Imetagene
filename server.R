@@ -6,6 +6,8 @@ bams <- NULL
 beds <- NULL
 sizes <- 0
 metagene_object <- NULL
+design <- NULL
+
 
 shinyServer(function(input, output, session) {
   
@@ -82,8 +84,6 @@ shinyServer(function(input, output, session) {
   runMetagene <- eventReactive(input$runMetagene,{
     ## make some check
     can_run <- TRUE
-    print(bams)
-    print(beds)
     msg <- "Please wait. This process may take a few minutes..."
     
     ## CHECK 1 : BAM & BED provided ?
@@ -156,7 +156,6 @@ shinyServer(function(input, output, session) {
         )
       })
       
-      #updateButton(session,inputId = "runMetagene", disabled = TRUE)
       return(NULL)
     }
     
@@ -244,15 +243,6 @@ shinyServer(function(input, output, session) {
     shrinkRegionsAndRunMetagene()
   })
   
-  
-  goToDesign <- eventReactive(input$go2design,{
-    print(names(metagene_object$coverages))
-  })
-  
-  observe({
-    goToDesign()
-  })
-  
   output$saveMetagene <- downloadHandler(
     filename = function() { 
       paste("metagene_",format(Sys.time(), "%m_%d_%y_%H_%M_%S"),'.Rda', sep='') 
@@ -263,11 +253,137 @@ shinyServer(function(input, output, session) {
   )
   
   observeEvent(input$go2design, {
-    # renvoyer sur le panel principal
+    # preparation des donnees pour le design
+    
+    if(is.null(bams)){
+      bams <<- names(metagene_object$coverages)
+    }
+    
+    #bam_choice <- sapply(X=bams, FUN=extract_file_name)
+    #names(bam_choice) = NULL
+    bam_choice <-  bams
+    
+    updateSelectInput(session, inputId = "chips", choices = bam_choice)
+    updateSelectInput(session, inputId = "ctrls", choices = bam_choice)
+    
+    # envoyer sur le panel DESIGN
     session$sendCustomMessage("myCallbackHandler", "1")
   })
   
   
+  #### DESIGNS ####
+  ### LOAD EXISTING DESIGN
+  observe({
+    shinyFileChoose(input, 'loadDesign', session=session, roots=roots,
+                    filetypes=c('','txt','csv','tsv'))
+    pfile = parseFilePaths(roots, input$loadDesign)
+    updateTextInput(session, "path_load_design",  value = pfile$datapath)
+    
+    ## SOME CHECK : 
+    if(nrow(pfile) > 0) {
+      #f <- load(as.character(pfile$datapath))
+      # FAUDRAIT check par rapport au contenu. 1) que les sample names correspondent aux bams 2) que les chiffres soit 0,1 ou 2
+      
+      design <<- read.table(file = as.character(pfile$datapath), header = input$header)
+      
+      if(TRUE) {
+        
+        createAlert(session, "load_alert_d", "load_d_ok", title = "Loading status",
+                    content = "Design successfully loaded", append = FALSE, dismiss = TRUE,
+                    style = "info")
+        
+        output$loaded_design = renderDataTable({
+          design
+        })
+        
+        updateButton(session, inputId = "go2matrix", disabled = FALSE)
+        
+      } else {
+        
+        createAlert(session, "load_alert_d", "load_d_fail", title = "Loading status",
+                    content = "The loaded design seems not be well formated", append = FALSE, dismiss = TRUE,
+                    style="warning")
+      }
+      
+    }
+  })
   
+  
+  ### CONSTRUCT NEW DESIGN
+  
+  observeEvent(input$chips, {
+    if(is.null(bams)){
+      bams <<- names(metagene_object$coverages)
+    }
+    
+    #bam_choice <- sapply(X=bams, FUN=extract_file_name)
+    #names(bam_choice) = NULL
+    bam_choice <-  bams
+    
+    current_chips_select <- input$chips
+    current_ctrls_select <- input$ctrls
+    
+    control_choice <- bam_choice[! (bam_choice %in% current_chips_select)]
+    
+    updateSelectInput(session, inputId = "ctrls", choices = control_choice, selected = current_ctrls_select)
+  })
+  
+  observeEvent(input$ctrls, {
+    if(is.null(bams)){
+      bams <<- names(metagene_object$coverages)
+    }
+    
+    #bam_choice <- sapply(X=bams, FUN=extract_file_name)
+    #names(bam_choice) = NULL
+    bam_choice <-  bams
+    
+    current_chips_select <- input$chips
+    current_ctrls_select <- input$ctrls
+    
+    chips_choice <- bam_choice[! (bam_choice %in% current_ctrls_select)]
+    
+    updateSelectInput(session, inputId = "chips", choices = chips_choice, selected = current_chips_select)
+  })
+  
+  addExperiments <- eventReactive(input$saveExp, {
+    
+    ### TO DO : TEST AVANT AJOUT EXPERIENCE !!!
+    
+    can_add = TRUE
+    
+    if(can_add) {
+      if(is.null(design)) {
+        design <<- data.frame(Samples = bams)
+      }
+      
+      n <- nrow(design)
+      v = rep(0,n)
+      names(v) = bams
+      
+      chips <- input$chips
+      ctrls <- input$ctrls
+      
+      for(chip in chips) {
+        v[chip] <- 1         
+      }
+      
+      for(ctrl in ctrls) {
+        v[ctrl] <- 2         
+      }
+      
+      design[input$exp_name] <<- v
+      
+      output$design = renderDataTable({
+        design
+      })
+      
+    }
+    
+    
+  })
+  
+  observe({
+    addExperiments()
+  })
   
 })
