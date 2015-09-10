@@ -166,6 +166,18 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                 bsAlert("load_alert_d")
                                                                               ), 
                                                                               style = "primary"),
+                                                              bsCollapsePanel("Design from loaded metagene", 
+                                                                              list(
+                                                                                fluidRow(
+                                                                                  column(width = 12,
+                                                                                         list(
+                                                                                           helpText("Here is the design contains in the loaded metagene if any."),
+                                                                                           dataTableOutput('loaded_mg_design')
+                                                                                         )
+                                                                                  )
+                                                                                )
+                                                                              ), 
+                                                                              style = "primary"),
                                                               bsCollapsePanel("Create a new design", 
                                                                               list(
                                                                                 textInput(inputId = "exp_name", label = "Experience name", value = "Exp1"),
@@ -217,21 +229,24 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                                 value1 = 10,
                                                                                                 value2 = 100),
                                                                                 br(),br(),
-                                                                                selectInput(inputId = "noise", choices = c("NOISE1","NOISE2","NOISE3"), label = "noise removal"),
-                                                                                selectInput(inputId = "norm", choices = c("NORM1","NORM2","NORM3"), label = "normalization"),
+                                                                                selectInput(inputId = "noise", choices = c("NONE","NCIS","RPM"), label = "noise removal"),
+                                                                                selectInput(inputId = "norm", choices = c("NONE","RPM"), label = "normalization"),
                                                                                 checkboxInput(inputId = "flip", value = FALSE, label = "flip regions"),
-                                                                                checkboxInput(inputId = "design", value = TRUE, label = "use design"),
-                                                                                br(),br(),
+                                                                                checkboxInput(inputId = "use_design", value = TRUE, label = "use design"),
+                                                                                br(),
                                                                                 fluidRow(
                                                                                   column(width = 3,
-                                                                                         bsButton(inputId = "runMatrix", label = "Produce matrix", style = "btn btn-primary", disabled = TRUE)),
+                                                                                         bsButton(inputId = "runMatrix", label = "Produce matrix", style = "btn btn-primary", disabled = FALSE)),
                                                                                   column(width = 8,
                                                                                          bsButton(inputId = "updateMetagene", label = "Update metagene", style = "btn btn-primary", disabled = TRUE))
-                                                                                )
+                                                                                ),
+                                                                                br(),
+                                                                                bsAlert("run_matrix_alert")
                                                                               )
                                                                               ,style = "primary"
                                                               )
-                                                   )
+                                                   ),
+                                                   bsButton(inputId = "go2plot", label = "Next step", style = "btn btn-primary", disabled = TRUE, icon = icon("arrow-right"))
                                           ),tabPanel("PLOT",
                                                      helpText("PUT SOME DESCRIPTION HERE"),
                                                      bsCollapse(id = "plot", 
@@ -240,29 +255,29 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                 bsCollapsePanel("Plot parameters", 
                                                                                 list(
                                                                                   fluidRow(
-                                                                                    column(width = 6,
+                                                                                    column(width = 4,
                                                                                            list(
                                                                                              selectInput(inputId = "plot_regions", 
-                                                                                                         label = "Select the regions you want to draw",
+                                                                                                         label = "Select regions to draw",
                                                                                                          selected = NULL,
                                                                                                          multiple = TRUE,
-                                                                                                         width = '100%',
+                                                                                                         width = '30%',
                                                                                                          selectize = TRUE,
-                                                                                                         choices = c("REGION1","REGION2","REGION3"))
+                                                                                                         choices = c("")),
+                                                                                             textInput(inputId = "plot_title", label = "plot title", value = "Enter text..."),
+                                                                                             sliderInput(inputId = "alpha", label = "alpha", min = 0, max = 1, value = 0.05),
+                                                                                             numericInput(inputId = "sample_count", label = "sample count",value = 1000)
                                                                                            )
                                                                                     ),
-                                                                                    column(width = 6,
+                                                                                    column(width = 8,
                                                                                            list(
-                                                                                             textInput(inputId = "plot_title", label = "plot title", value = "Enter text..."),
-                                                                                             sliderInput(inputId = "alpha", label = "alpha", min = 0, max = 1, value = 0),
-                                                                                             numericInput(inputId = "sample_count", label = "sample count",value = 0)
+                                                                                             plotOutput(outputId = "mg_plot")
                                                                                            )
                                                                                     )
                                                                                   ),
-                                                                                  br(),br(),
+                                                                                  br(),
                                                                                   bsButton(inputId = "runPlot", label = "Plot", style = "btn btn-primary", disabled = FALSE),
                                                                                   br(),br(),
-                                                                                  plotOutput(outputId = "plot"),
                                                                                   fluidRow(
                                                                                     column(width = 6,
                                                                                            bsButton(inputId = "savePlotPNG", label = "Export PNG", style = "btn btn-primary", disabled = TRUE)),

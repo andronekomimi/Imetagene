@@ -23,18 +23,31 @@ shinyServer(function(input, output, session) {
     if(nrow(pfile) > 0) {
       f <- load(as.character(pfile$datapath))
       metagene_object <<- eval(as.symbol(f))
-      if(ismetagene(metagene_object)) {
+      ret <- ismetagene(metagene_object)
+      if(ret == 0) {
         
         createAlert(session, "load_alert", "load_ok", title = "Loading status",
                     content = "Metagene object successfully loaded", append = FALSE, dismiss = TRUE,
                     style = "info")
         updateButton(session, inputId = "go2design", disabled = FALSE)
         
-      } else {
+        bin_def_size = 100
+        regions_size = as.numeric(unlist(width(metagene_object$regions))[1])
+        bin_num =  regions_size %/% bin_def_size
+        updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
+        updateSelectInput(session, inputId = "plot_regions", choices = names(metagene_object$regions), 
+                          selected = names(metagene_object$regions))
         
-        createAlert(session, "load_alert", "load_fail", title = "Loading status",
-                    content = "The loaded R object seems not be a metagene object", append = FALSE, dismiss = TRUE,
-                    style="warning")
+      } else {
+        if(ret == 1) {
+          createAlert(session, "load_alert", "load_fail", title = "Loading status",
+                      content = "The loaded R object seems not be a metagene object", append = FALSE, dismiss = TRUE,
+                      style="warning")
+        } else {
+          createAlert(session, "load_alert", "load_fail_old", title = "Loading status",
+                      content = "The loaded metagene object has been generated with an old version of metagene (needed version of metagene 2.2.0).", append = FALSE, dismiss = TRUE,
+                      style="warning")
+        }
       }
       
     }
@@ -173,7 +186,13 @@ shinyServer(function(input, output, session) {
                     content = "Done running metagene !", append = FALSE, dismiss = TRUE,
                     style = "success")
         updateButton(session, inputId = "go2design", disabled = FALSE)
-        #updateButton(session, inputId = "saveMetagene", disabled = FALSE)
+        
+        bin_def_size = 100
+        regions_size = as.numeric(unlist(width(metagene_object$regions))[1])
+        bin_num =  regions_size %/% bin_def_size
+        updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
+        updateSelectInput(session, inputId = "plot_regions", choices = names(metagene_object$regions), 
+                          selected = names(metagene_object$regions))
         
       },error = function(e) {
         print(e)
@@ -202,7 +221,13 @@ shinyServer(function(input, output, session) {
                   content = "Done running metagene !", append = FALSE, dismiss = TRUE,
                   style = "success")
       updateButton(session, inputId = "go2design", disabled = FALSE)
-      #updateButton(session, inputId = "saveMetagene", disabled = FALSE)
+      
+      bin_def_size = 100
+      regions_size = as.numeric(unlist(width(metagene_object$regions))[1])
+      bin_num =  regions_size %/% bin_def_size
+      updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
+      updateSelectInput(session, inputId = "plot_regions", choices = names(metagene_object$regions), 
+                        selected = names(metagene_object$regions))
       
     },error = function(e) {
       print(e)
@@ -226,7 +251,13 @@ shinyServer(function(input, output, session) {
                   content = "Done running metagene !", append = FALSE, dismiss = TRUE,
                   style = "success")
       updateButton(session, inputId = "go2design", disabled = FALSE)
-      #updateButton(session, inputId = "saveMetagene", disabled = FALSE)
+      
+      bin_def_size = 100
+      regions_size = as.numeric(unlist(width(metagene_object$regions))[1])
+      bin_num =  regions_size %/% bin_def_size
+      updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
+      updateSelectInput(session, inputId = "plot_regions", choices = names(metagene_object$regions),
+                        selected = names(metagene_object$regions))
       
     },error = function(e) {
       print(e)
@@ -281,33 +312,46 @@ shinyServer(function(input, output, session) {
     
     ## SOME CHECK : 
     if(nrow(pfile) > 0) {
-      #f <- load(as.character(pfile$datapath))
-      # FAUDRAIT check par rapport au contenu. 1) que les sample names correspondent aux bams 2) que les chiffres soit 0,1 ou 2
       
-      design <<- read.table(file = as.character(pfile$datapath), header = input$header)
-      
-      if(TRUE) {
-        
+      tryCatch ({
+        design <<- read.table(file = as.character(pfile$datapath), header = input$header)
+        metagene_object$add_design(design)
+        msg <- "Design successfully loaded"
         createAlert(session, "load_alert_d", "load_d_ok", title = "Loading status",
-                    content = "Design successfully loaded", append = FALSE, dismiss = TRUE,
+                    content = msg, append = FALSE, dismiss = TRUE,
                     style = "info")
         
         output$loaded_design = renderDataTable({
           design
         })
-        
         updateButton(session, inputId = "go2matrix", disabled = FALSE)
         
-      } else {
-        
-        createAlert(session, "load_alert_d", "load_d_fail", title = "Loading status",
-                    content = "The loaded design seems not be well formated", append = FALSE, dismiss = TRUE,
+      },error = function(e) {
+        closeAlert(session,alertId = "load_d_fail_error")
+        print(e)
+        createAlert(session, "load_alert_d", "load_d_fail_error", title = "Loading status",
+                    content = as.character(e), append = FALSE, dismiss = TRUE,
+                    style="danger")
+      },warning = function(w) {
+        print(w)
+        createAlert(session, "load_alert_d", "load_d_fail_warn", title = "Loading status",
+                    content = as.character(w), append = FALSE, dismiss = TRUE,
                     style="warning")
-      }
-      
+      })
     }
   })
   
+  ### DISPLAY OF DESIGN IN LOADED METAGENE OBJECT
+  observeEvent(input$path_load_metagene, {
+    output$loaded_mg_design = renderDataTable({
+      if(!is.null(metagene_object)) {
+        if(nrow(metagene_object$design) > 0) {
+          updateButton(session, inputId = "go2matrix", disabled = FALSE)
+          metagene_object$design
+        }
+      }
+    })
+  })
   
   ### CONSTRUCT NEW DESIGN
   
@@ -353,6 +397,7 @@ shinyServer(function(input, output, session) {
     
     if(can_add) {
       if(is.null(design)) {
+        updateButton(session, inputId = "go2matrix", disabled = FALSE)
         design <<- data.frame(Samples = bams)
       }
       
@@ -374,16 +419,123 @@ shinyServer(function(input, output, session) {
       design[input$exp_name] <<- v
       
       output$design = renderDataTable({
+        metagene_object$add_design(design)
         design
       })
       
     }
-    
     
   })
   
   observe({
     addExperiments()
   })
+  
+  
+  observeEvent(input$go2matrix, {
+    # preparation des donnees pour la matrix
+    
+    if(is.null(bams)){
+      bams <<- names(metagene_object$coverages)
+    }
+    
+    # envoyer sur le panel DESIGN
+    session$sendCustomMessage("myCallbackHandler", "2")
+  })
+  
+  
+  #### MATRIX PARAMETERS
+  
+  #   observeEvent(input$bin_size, {
+  #     if(!is.null(metagene_object)) {
+  #       regions_size = as.numeric(unlist(width(metagene_object$regions))[1])
+  #       bin_num =  regions_size %/% input$bin_size
+  #       updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
+  #     }
+  #   })
+  #   
+  #   observeEvent(input$bin_count, {
+  #     if(!is.null(metagene_object)) {
+  #       regions_size = as.numeric(unlist(width(metagene_object$regions))[1])
+  #       bin_size =  regions_size %/% input$bin_count
+  #       updateNumericInput(session, inputId = "bin_size", value = bin_size, min = 1, max = regions_size)
+  #     }
+  #   })
+  
+  observeEvent(input$runMatrix, {
+    if(!is.null(metagene_object)) {
+      
+      if(! input$use_design){
+        used_design <- NA
+      } else {
+        used_design <- metagene_object$adesign
+      }
+      
+      if(input$noise == "NONE"){
+        noise <- NA
+      } else {
+        noise <- input$noise
+      }
+      
+      if(input$norm == "NONE"){
+        norm <- NA
+      } else {
+        norm <- input$norm
+      }
+      
+      tryCatch ({
+        metagene_object$produce_matrices(select_regions = names(metagene_object$regions), 
+                                         design = used_design, 
+                                         bin_count = input$bin_count,
+                                         bin_size = input$bin_size, 
+                                         noise_removal = noise,
+                                         normalization = norm, 
+                                         flip_regions = input$flip)
+        
+        updateButton(session,inputId = "runMatrix", "Producing matrix...", disabled = TRUE)
+        updateButton(session,inputId = "go2plot", disabled = FALSE)
+        
+        createAlert(session, "run_matrix_alert", "run_matrix_success", title = "Produce matrix status",
+                    content = "Matrix successfully produced", append = FALSE, dismiss = TRUE,
+                    style="success")
+        
+      },error = function(e) {
+        closeAlert(session,alertId = "load_d_fail_error")
+        print(e)
+        createAlert(session, "run_matrix_alert", "run_matrix_error", title = "Produce matrix status",
+                    content = as.character(e), append = FALSE, dismiss = TRUE,
+                    style="danger")
+      },warning = function(w) {
+        print(w)
+        createAlert(session, "run_matrix_alert", "run_matrix_warn", title = "Produce matrix status",
+                    content = as.character(w), append = FALSE, dismiss = TRUE,
+                    style="warning")
+      })
+    }
+  })
+  
+  observeEvent(input$go2plot, {
+    session$sendCustomMessage("myCallbackHandler", "3")
+  })
+  
+  observeEvent(input$runPlot, {
+    if(!is.null(metagene_object) && length(metagene_object$matrices) > 0) {
+      
+      
+      if(! input$use_design){
+        used_design <- NA
+      } else {
+        used_design <- metagene_object$adesign
+      }
+      
+      mg_plot = metagene_object$plot(design = used_design, regions_group = input$plot_regions, bin_count = input$bin_count,
+                                     bin_size = input$bin_size, alpha = input$alpha, sample_count = input$sample_count,
+                                     range = c(-1,1), title = input$plot_title, flip_regions = input$flip)
+      output$mg_plot <- renderPlot({
+        mg_plot
+      })
+    }
+  })
+
   
 })

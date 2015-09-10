@@ -3,7 +3,18 @@ library(Rsamtools)
 library(GenomicRanges)
 
 ismetagene <- function(loaded_mg) {
-  return("metagene" %in% class(loaded_mg))
+  ret = 0
+  
+  if(!"metagene" %in% class(loaded_mg)){
+    ret = 1
+  } else {
+    if(is.null(loaded_mg$flip_regions)) {  # old version of metagene
+      ret = 2
+    }
+  }
+  
+  
+  return(ret)
 }
 
 getBEDlevels <- function(beds) {
@@ -30,7 +41,7 @@ getBEDregionSize <- function(beds) {
     df <- read.table(file = bed, header = FALSE)
     tmp_max <- max((df[,3] - df[,2]))
     tmp_min <- min((df[,3] - df[,2]))
-   
+    
     
     if(is.null(min_size)) {
       min_size <- tmp_min
