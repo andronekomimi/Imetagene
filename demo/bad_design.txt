@@ -1,0 +1,6 @@
+Samples	align1	align2
+/home/nekomimi/Softs/R-3.2.1/library/metagene/extdata/Align1_rep1.bam	1	0
+/home/nekomimi/Softs/R-3.2.1/library/metagene/extdata/align1_rep2.bam	1	0
+/home/nekomimi/Softs/R-3.2.1/library/metagene/extdata/align2_rep1.bam	0	1
+/home/nekomimi/Softs/R-3.2.1/library/metagene/extdata/align2_rep2.bam	0	1
+/home/nekomimi/Softs/R-3.2.1/library/metagene/extdata/ctrl.bam	2	2
