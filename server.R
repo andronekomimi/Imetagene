@@ -1,15 +1,19 @@
 # IMETAGENE SERVER.R
 library(metagene)
 source("helper.R")
-roots <- c(wd='.')
-bams <- NULL
-beds <- NULL
-sizes <- 0
-metagene_object <- NULL
-design <- NULL
+
 
 
 shinyServer(function(input, output, session) {
+  
+  # GLOBALS
+  roots <- c(wd='.')
+  bams <- NULL
+  beds <- NULL
+  sizes <- 0
+  metagene_object <- NULL
+  design <- NULL
+  
   
   #### INPUTS ####
   ### LOAD EXISTING METAGENE
@@ -53,18 +57,25 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  
   ### LOAD FILE TO CREATE METAGENE OBJECT
   udpateBamList <- reactive({
     shinyFileChoose(input, 'bams', session=session, roots=roots, filetypes=c('bam'))
     pfile = parseFilePaths(roots, input$bams)
     bams <<- c(bams, as.character(pfile$datapath))
     bams <<- unique(bams)
-    paste(bams, collapse = '\n')
     
+    list(
+      selectInput(inputId = "edit_bams_list", 
+                  label = "",
+                  selected = bams, 
+                  choices = bams,
+                  multiple = TRUE,
+                  width = '100%',
+                  selectize = TRUE)
+    )  
   })
   
-  output$bam_list <- renderText({
+  output$bam_list <- renderUI({
     udpateBamList()
   })
   
@@ -73,29 +84,43 @@ shinyServer(function(input, output, session) {
     pfile = parseFilePaths(roots, input$beds)
     beds <<- c(beds, as.character(pfile$datapath))
     beds <<- unique(beds)
-    paste(beds, collapse = '\n')
+    
+    list(
+      selectInput(inputId = "edit_beds_list", 
+                  label = "",
+                  selected = beds, 
+                  choices = beds,
+                  multiple = TRUE,
+                  width = '100%',
+                  selectize = TRUE)
+    )
     
   })
   
-  output$bed_list <- renderText({
+  output$bed_list <- renderUI({
     udpateBedList()
   })
   
-  #   clear_bam <- eventReactive(input$clear_bams, {
-  #     print(bams)
-  #     bams <<- NULL
-  #     print(bams)
-  #   })
-  # 
-  #   observe({
-  #     clear_bam()
-  #   })
+  observe({
+    if(is.null(input$edit_bams_list))
+      return(NULL)
+    bams <<- input$edit_bams_list
+    
+  })
   
-  
+  observe({
+    if(is.null(input$edit_beds_list))
+      return(NULL)
+    beds <<- input$edit_beds_list
+    
+  })
   
   ### RUN METAGENE
   runMetagene <- eventReactive(input$runMetagene,{
     ## make some check
+    cat("mes bams : ", bams, "\n")
+    cat("mes beds : ", beds, "\n")
+    
     can_run <- TRUE
     msg <- "Please wait. This process may take a few minutes..."
     
@@ -297,6 +322,12 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, inputId = "chips", choices = bam_choice)
     updateSelectInput(session, inputId = "ctrls", choices = bam_choice)
     
+    #update design
+    print(design)
+    output$current_mg_design = renderDataTable({
+      metagene_object$design
+    })
+    
     # envoyer sur le panel DESIGN
     session$sendCustomMessage("myCallbackHandler", "1")
   })
@@ -321,7 +352,7 @@ shinyServer(function(input, output, session) {
                     content = msg, append = FALSE, dismiss = TRUE,
                     style = "info")
         
-        output$loaded_design = renderDataTable({
+        output$current_mg_design = renderDataTable({
           design
         })
         updateButton(session, inputId = "go2matrix", disabled = FALSE)
@@ -343,7 +374,7 @@ shinyServer(function(input, output, session) {
   
   ### DISPLAY OF DESIGN IN LOADED METAGENE OBJECT
   observeEvent(input$path_load_metagene, {
-    output$loaded_mg_design = renderDataTable({
+    output$current_mg_design = renderDataTable({
       if(!is.null(metagene_object)) {
         if(nrow(metagene_object$design) > 0) {
           updateButton(session, inputId = "go2matrix", disabled = FALSE)
@@ -418,7 +449,8 @@ shinyServer(function(input, output, session) {
       
       design[input$exp_name] <<- v
       
-      output$design = renderDataTable({
+      
+      output$current_mg_design = renderDataTable({
         metagene_object$add_design(design)
         design
       })
@@ -536,6 +568,6 @@ shinyServer(function(input, output, session) {
       })
     }
   })
-
+  
   
 })

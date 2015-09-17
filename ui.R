@@ -102,22 +102,16 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                          list(
                                                                                            shinyFilesButton('bams', 'Select BAM files', 
                                                                                                             'Please select a file', TRUE),
-                                                                                           br(),br(),
-                                                                                           verbatimTextOutput("bam_list")
-                                                                                           #  ,
-                                                                                           #  bsButton('clear_bams', 'Clear BAM files', 
-                                                                                           #           , style = "btn btn-primary", disabled = FALSE)
+                                                                                           br(),
+                                                                                           uiOutput("bam_list")
                                                                                          )
                                                                                   ),
                                                                                   column(width = 6,
                                                                                          list(
                                                                                            shinyFilesButton('beds', 'Select BED files', 
                                                                                                             'Please select a file', TRUE),
-                                                                                           br(),br(),
-                                                                                           verbatimTextOutput("bed_list")
-                                                                                           #  ,
-                                                                                           #  bsButton('clear_beds', 'Clear BED files', 
-                                                                                           #           , style = "btn btn-primary", disabled = FALSE)
+                                                                                           br(),
+                                                                                           uiOutput("bed_list")
                                                                                          )
                                                                                   )
                                                                                 ),
@@ -143,8 +137,20 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                    helpText("Samples (with or without replicates) and controls can be assigned to a same design group."),
                                                    helpText("There can be as many groups as necessary. A BAM file can be assigned to more than one group."),
                                                    bsCollapse(id = "design", 
-                                                              open = c("Load existing design file"), 
+                                                              open = c("Current design"), 
                                                               multiple = FALSE,
+                                                              bsCollapsePanel("Current design", 
+                                                                              list(
+                                                                                fluidRow(
+                                                                                  column(width = 12,
+                                                                                         list(
+                                                                                           helpText("Here is the design contains in the loaded metagene if any."),
+                                                                                           dataTableOutput('current_mg_design')
+                                                                                         )
+                                                                                  )
+                                                                                )
+                                                                              ), 
+                                                                              style = "primary"),
                                                               bsCollapsePanel("Load existing design file", 
                                                                               list(
                                                                                 helpText("ADD HELP BUBBLE"),
@@ -162,20 +168,7 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                          )
                                                                                   )
                                                                                 ),
-                                                                                dataTableOutput('loaded_design'),
                                                                                 bsAlert("load_alert_d")
-                                                                              ), 
-                                                                              style = "primary"),
-                                                              bsCollapsePanel("Design from loaded metagene", 
-                                                                              list(
-                                                                                fluidRow(
-                                                                                  column(width = 12,
-                                                                                         list(
-                                                                                           helpText("Here is the design contains in the loaded metagene if any."),
-                                                                                           dataTableOutput('loaded_mg_design')
-                                                                                         )
-                                                                                  )
-                                                                                )
                                                                               ), 
                                                                               style = "primary"),
                                                               bsCollapsePanel("Create a new design", 
@@ -209,8 +202,7 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                 bsAlert("save_exp_alert"),
                                                                                 bsButton(inputId = "saveExp", label = "Save Experiment", style = "btn btn-primary", disabled = FALSE),
                                                                                 br(),br(),
-                                                                                dataTableOutput('design'),
-                                                                                bsButton(inputId = "saveDesign", label = "Save Design", style = "btn btn-primary", disabled = TRUE)
+                                                                                bsButton(inputId = "saveDesign", label = "Save Current Design", style = "btn btn-primary", disabled = TRUE)
                                                                               ), 
                                                                               style = "primary")
                                                    ),
@@ -219,8 +211,20 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                           tabPanel("MATRIX",
                                                    helpText("PUT SOME DESCRIPTION HERE"),
                                                    bsCollapse(id = "matrix", 
-                                                              open = c("Matrix parameters"), 
+                                                              open = c("Current matrix"), 
                                                               multiple = FALSE,
+                                                              bsCollapsePanel("Current matrix", 
+                                                                              list(
+                                                                                fluidRow(
+                                                                                  column(width = 12,
+                                                                                         list(
+                                                                                           helpText("Here is the statistics for the matrix contains in the loaded metagene if any."),
+                                                                                           dataTableOutput('current_mg_matrix')
+                                                                                         )
+                                                                                  )
+                                                                                )
+                                                                              ), 
+                                                                              style = "primary"),
                                                               bsCollapsePanel("Matrix parameters", 
                                                                               list(
                                                                                 customNumInputs(id1="bin_count", id2 = "bin_size",
