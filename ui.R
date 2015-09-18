@@ -144,7 +144,7 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                 fluidRow(
                                                                                   column(width = 12,
                                                                                          list(
-                                                                                           helpText("Here is the design contains in the loaded metagene if any."),
+                                                                                           helpText("Here is the design contained in the current metagene if any."),
                                                                                            dataTableOutput('current_mg_design')
                                                                                          )
                                                                                   )
@@ -202,24 +202,25 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                 bsAlert("save_exp_alert"),
                                                                                 bsButton(inputId = "saveExp", label = "Save Experiment", style = "btn btn-primary", disabled = FALSE),
                                                                                 br(),br(),
-                                                                                bsButton(inputId = "saveDesign", label = "Save Current Design", style = "btn btn-primary", disabled = TRUE)
+                                                                                downloadButton(outputId = "saveDesign", label = "Save Current Design")
                                                                               ), 
                                                                               style = "primary")
                                                    ),
-                                                   bsButton(inputId = "go2matrix", label = "Next step", style = "btn btn-primary", disabled = TRUE, icon = icon("arrow-right"))
+                                                   bsButton(inputId = "go2matrix", label = "Next step", style = "btn btn-primary", disabled = FALSE, icon = icon("arrow-right"))
                                           ),
                                           tabPanel("MATRIX",
                                                    helpText("PUT SOME DESCRIPTION HERE"),
                                                    bsCollapse(id = "matrix", 
                                                               open = c("Current matrix"), 
-                                                              multiple = FALSE,
+                                                              multiple = TRUE,
                                                               bsCollapsePanel("Current matrix", 
                                                                               list(
                                                                                 fluidRow(
                                                                                   column(width = 12,
                                                                                          list(
-                                                                                           helpText("Here is the statistics for the matrix contains in the loaded metagene if any."),
-                                                                                           dataTableOutput('current_mg_matrix')
+                                                                                           helpText("Here is the matrix contained in the current metagene if any."),
+                                                                                           verbatimTextOutput('current_mg_matrix_content'),
+                                                                                           uiOutput('current_mg_matrix_heatmap')
                                                                                          )
                                                                                   )
                                                                                 )
@@ -227,12 +228,7 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                               style = "primary"),
                                                               bsCollapsePanel("Matrix parameters", 
                                                                               list(
-                                                                                customNumInputs(id1="bin_count", id2 = "bin_size",
-                                                                                                before = "bin count ", 
-                                                                                                after = "or bin size", 
-                                                                                                value1 = 10,
-                                                                                                value2 = 100),
-                                                                                br(),br(),
+                                                                                numericInput(inputId = "bin_size", value = 100, label = "bin size"),
                                                                                 selectInput(inputId = "noise", choices = c("NONE","NCIS","RPM"), label = "noise removal"),
                                                                                 selectInput(inputId = "norm", choices = c("NONE","RPM"), label = "normalization"),
                                                                                 checkboxInput(inputId = "flip", value = FALSE, label = "flip regions"),
@@ -242,7 +238,7 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                   column(width = 3,
                                                                                          bsButton(inputId = "runMatrix", label = "Produce matrix", style = "btn btn-primary", disabled = FALSE)),
                                                                                   column(width = 8,
-                                                                                         bsButton(inputId = "updateMetagene", label = "Update metagene", style = "btn btn-primary", disabled = TRUE))
+                                                                                         downloadButton(outputId = "updateMetagene", label = "Save metagene", class = "btn btn-primary"))
                                                                                 ),
                                                                                 br(),
                                                                                 bsAlert("run_matrix_alert")
@@ -250,7 +246,7 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                               ,style = "primary"
                                                               )
                                                    ),
-                                                   bsButton(inputId = "go2plot", label = "Next step", style = "btn btn-primary", disabled = TRUE, icon = icon("arrow-right"))
+                                                   bsButton(inputId = "go2plot", label = "Next step", style = "btn btn-primary", disabled = FALSE, icon = icon("arrow-right"))
                                           ),tabPanel("PLOT",
                                                      helpText("PUT SOME DESCRIPTION HERE"),
                                                      bsCollapse(id = "plot", 
@@ -284,9 +280,9 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                   br(),br(),
                                                                                   fluidRow(
                                                                                     column(width = 6,
-                                                                                           bsButton(inputId = "savePlotPNG", label = "Export PNG", style = "btn btn-primary", disabled = TRUE)),
+                                                                                           downloadButton(outputId = "savePlotPNG", label = "Export PNG")),
                                                                                     column(width = 6,
-                                                                                           bsButton(inputId = "savePlotPDF", label = "Export PDF", style = "btn btn-primary", disabled = TRUE))
+                                                                                           downloadButton(outputId = "savePlotPDF", label = "Export PDF"))
                                                                                   )
                                                                                 )
                                                                                 ,style = "primary"

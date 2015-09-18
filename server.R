@@ -1,5 +1,7 @@
 # IMETAGENE SERVER.R
 library(metagene)
+library(d3heatmap)
+library(ggplot2)
 source("helper.R")
 
 
@@ -7,13 +9,52 @@ source("helper.R")
 shinyServer(function(input, output, session) {
   
   # GLOBALS
-  roots <- c(wd='.')
+  roots <- c(wd='./demo')
   bams <- NULL
   beds <- NULL
   sizes <- 0
   metagene_object <- NULL
   design <- NULL
   
+  
+  # create empty plot
+  waiting_plot <- function(msg) {
+    df = data.frame(x=c(1), 
+                    y=c(1), 
+                    name = c(msg))
+    g = ggplot(data=df, mapping=aes(x=x, y=y)) +
+      geom_blank() + ylab("") + xlab("") + 
+      geom_text(aes(x = x, y = y, label=name), size = 7, color = "midnightblue") +
+      theme(
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank())
+    g
+  }
+  
+  ###############################################################
+  # Copie de MHmakeRandomString 
+  # https://ryouready.wordpress.com/2008/12/18/generate-random-string-name/
+  # makeRandomID(n, length)
+  # function generates a random string random string of the
+  # length (length), made up of numbers, small and capital letters
+  
+  makeRandomID <- function(n=1, lenght=12)
+  {
+    randomString <- c(1:n)                  # initialize vector
+    for (i in 1:n)
+    {
+      randomString[i] <- paste(sample(c(0:9, letters, LETTERS),
+                                      lenght, replace=TRUE),
+                               collapse="")
+    }
+    return(randomString)
+  }
+  
+  #  > MHmakeRandomString()
+  #  [1] "XM2xjggXX19r"
+  ###############################################################
+  randomID <- makeRandomID()
   
   #### INPUTS ####
   ### LOAD EXISTING METAGENE
@@ -146,7 +187,7 @@ shinyServer(function(input, output, session) {
       msg <- paste(unindexed_bams, collapse = ",")
       createAlert(session, "run_alert", "run_fail2", title = "Metagene status",
                   content = paste0("Can't find indexes for the following BAM files : ", msg), append = FALSE, dismiss = TRUE,
-                  style="dander")
+                  style="danger")
       return(NULL)
     }
     
@@ -323,7 +364,6 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, inputId = "ctrls", choices = bam_choice)
     
     #update design
-    print(design)
     output$current_mg_design = renderDataTable({
       metagene_object$design
     })
@@ -347,6 +387,7 @@ shinyServer(function(input, output, session) {
       tryCatch ({
         design <<- read.table(file = as.character(pfile$datapath), header = input$header)
         metagene_object$add_design(design)
+        
         msg <- "Design successfully loaded"
         createAlert(session, "load_alert_d", "load_d_ok", title = "Loading status",
                     content = msg, append = FALSE, dismiss = TRUE,
@@ -455,6 +496,7 @@ shinyServer(function(input, output, session) {
         design
       })
       
+      updateCollapse(session, "design", open = "Current design")
     }
     
   })
@@ -462,6 +504,16 @@ shinyServer(function(input, output, session) {
   observe({
     addExperiments()
   })
+  
+  ### SAVE DESIGN
+  output$saveDesign <- downloadHandler(
+    filename = function() {
+      paste("metagene_design_",format(Sys.time(), "%m_%d_%y_%H_%M_%S"),'.csv', sep='')
+    },
+    content = function(file) {
+      write.csv(metagene_object$design, file, row.names=FALSE, quote=FALSE )
+    }
+  )
   
   
   observeEvent(input$go2matrix, {
@@ -471,28 +523,57 @@ shinyServer(function(input, output, session) {
       bams <<- names(metagene_object$coverages)
     }
     
-    # envoyer sur le panel DESIGN
+    # afficher les données matrice si presente
+    if(!is.null(metagene_object) && length(metagene_object$matrices) > 0) {
+      ## nom des regions
+      m <- metagene_object$matrices
+      regions_names <- paste0("Regions : ",paste(names(m), collapse = ", "))
+      
+      experiences_names_for_all_regions <- c()
+      experiences_list <- c()
+      for(region_name in names(m)) {
+        experiences_list <- c(experiences_list, paste(region_name, names(m[[region_name]])))
+        experiences_names <- names(m[[region_name]])
+        experiences_names_for_all_regions = c(experiences_names_for_all_regions, 
+                                              paste("Experiments for",region_name,":", paste(experiences_names, collapse = ", ")))
+      }
+      
+      output$current_mg_matrix_content <- renderText({
+        paste0(regions_names,"\n",paste(experiences_names_for_all_regions, collapse = "\n"))
+      })
+      
+      output$current_mg_matrix_heatmap <- renderUI({
+        list(
+          selectInput(inputId = "select_exp_4_heatmap", 
+                      label = "Select an experiment to see its matrix",
+                      selected = NULL, 
+                      choices = experiences_list,
+                      multiple = FALSE,
+                      width = '100%',
+                      selectize = TRUE),
+          d3heatmapOutput("heatmap")
+        )  
+      })
+    }
+    
+    
+    # envoyer sur le panel MATRIX
     session$sendCustomMessage("myCallbackHandler", "2")
   })
   
+  observeEvent(input$select_exp_4_heatmap, {
+    
+    selected_exp <- strsplit(x = input$select_exp_4_heatmap, split = " ")[[1]]
+    m <- metagene_object$matrices[[selected_exp[1]]][[selected_exp[2]]]$input
+    
+    color = rev(heat.colors(256))
+    
+    output$heatmap <- renderD3heatmap({
+      d3heatmap(m, scale = "column", dendrogram = "none", color = "Blues")
+    })
+  })
   
   #### MATRIX PARAMETERS
-  
-  #   observeEvent(input$bin_size, {
-  #     if(!is.null(metagene_object)) {
-  #       regions_size = as.numeric(unlist(width(metagene_object$regions))[1])
-  #       bin_num =  regions_size %/% input$bin_size
-  #       updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
-  #     }
-  #   })
-  #   
-  #   observeEvent(input$bin_count, {
-  #     if(!is.null(metagene_object)) {
-  #       regions_size = as.numeric(unlist(width(metagene_object$regions))[1])
-  #       bin_size =  regions_size %/% input$bin_count
-  #       updateNumericInput(session, inputId = "bin_size", value = bin_size, min = 1, max = regions_size)
-  #     }
-  #   })
   
   observeEvent(input$runMatrix, {
     if(!is.null(metagene_object)) {
@@ -517,8 +598,7 @@ shinyServer(function(input, output, session) {
       
       tryCatch ({
         metagene_object$produce_matrices(select_regions = names(metagene_object$regions), 
-                                         design = used_design, 
-                                         bin_count = input$bin_count,
+                                         design = used_design,
                                          bin_size = input$bin_size, 
                                          noise_removal = noise,
                                          normalization = norm, 
@@ -526,10 +606,46 @@ shinyServer(function(input, output, session) {
         
         updateButton(session,inputId = "runMatrix", "Producing matrix...", disabled = TRUE)
         updateButton(session,inputId = "go2plot", disabled = FALSE)
+        updateButton(session,inputId = "updateMetagene", disabled = FALSE)
         
         createAlert(session, "run_matrix_alert", "run_matrix_success", title = "Produce matrix status",
                     content = "Matrix successfully produced", append = FALSE, dismiss = TRUE,
                     style="success")
+        
+        ### Construction visualisation de la matrice
+        if(!is.null(metagene_object) && length(metagene_object$matrices) > 0) {
+          ## nom des regions
+          m <- metagene_object$matrices
+          regions_names <- paste0("Regions : ",paste(names(m), collapse = ", "))
+          
+          experiences_names_for_all_regions <- c()
+          experiences_list <- c()
+          for(region_name in names(m)) {
+            experiences_list <- c(experiences_list, paste(region_name, names(m[[region_name]])))
+            experiences_names <- names(m[[region_name]])
+            experiences_names_for_all_regions = c(experiences_names_for_all_regions, 
+                                                  paste("Experiments for",region_name,":", paste(experiences_names, collapse = ", ")))
+          }
+          
+          output$current_mg_matrix_content <- renderText({
+            paste0(regions_names,"\n",paste(experiences_names_for_all_regions, collapse = "\n"))
+          })
+          
+          output$current_mg_matrix_heatmap <- renderUI({
+            list(
+              selectInput(inputId = "select_exp_4_heatmap", 
+                          label = "Select an experiment to see its matrix",
+                          selected = NULL, 
+                          choices = experiences_list,
+                          multiple = FALSE,
+                          width = '100%',
+                          selectize = TRUE),
+              d3heatmapOutput("heatmap")
+            )  
+          })
+        }
+        
+        updateCollapse(session, "matrix", open = "Current matrix")
         
       },error = function(e) {
         closeAlert(session,alertId = "load_d_fail_error")
@@ -546,8 +662,23 @@ shinyServer(function(input, output, session) {
     }
   })
   
+  
+  output$updateMetagene <- downloadHandler(
+    filename = function() { 
+      paste("metagene_",format(Sys.time(), "%m_%d_%y_%H_%M_%S"),'.Rda', sep='') 
+    },
+    content = function(file) {
+      save(metagene_object, file = file)
+    }
+  )
+  
+  
   observeEvent(input$go2plot, {
     session$sendCustomMessage("myCallbackHandler", "3")
+  })
+  
+  output$mg_plot <- renderPlot({
+    return(waiting_plot("Waiting for your request..."))
   })
   
   observeEvent(input$runPlot, {
@@ -557,17 +688,48 @@ shinyServer(function(input, output, session) {
       if(! input$use_design){
         used_design <- NA
       } else {
-        used_design <- metagene_object$adesign
+        used_design <- metagene_object$design
       }
       
-      mg_plot = metagene_object$plot(design = used_design, regions_group = input$plot_regions, bin_count = input$bin_count,
+      updateButton(session,inputId = "runPlot", "Plotting in progress...", disabled = TRUE)
+      
+      metagene_plot <- metagene_object$plot(design = used_design, regions_group = input$plot_regions,
                                      bin_size = input$bin_size, alpha = input$alpha, sample_count = input$sample_count,
                                      range = c(-1,1), title = input$plot_title, flip_regions = input$flip)
+      
+      pdf(paste0("plots/metagene_plot_",randomID,".pdf"), onefile=T, paper="USr")
+      print(metagene_plot)
+      dev.off()
+      
+      png(paste0("plots/metagene_plot_",randomID,".png"))
+      print(metagene_plot)
+      dev.off()
+      
+      updateButton(session,inputId = "runPlot", "Plotting", disabled = FALSE)
+      
       output$mg_plot <- renderPlot({
-        mg_plot
+        metagene_plot
       })
     }
   })
   
+  
+  output$savePlotPDF <- downloadHandler(
+    filename = function() {
+      "metagene_plot.pdf"
+    },
+    content = function(file) {
+      file.copy(paste0("plots/metagene_plot_",randomID,".pdf"), file, overwrite = TRUE)
+    }
+  )
+  
+  output$savePlotPNG <- downloadHandler(
+    filename = function() {
+      "metagene_plot.png"
+    },
+    content = function(file) {
+      file.copy(paste0("plots/metagene_plot_",randomID,".png"), file, overwrite = TRUE)
+    }
+  )
   
 })
