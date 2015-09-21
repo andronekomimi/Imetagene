@@ -213,12 +213,12 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                    bsCollapse(id = "matrix", 
                                                               open = c("Current matrix"), 
                                                               multiple = TRUE,
-                                                              bsCollapsePanel("Current matrix", 
+                                                              bsCollapsePanel("Current matrix overview", 
                                                                               list(
                                                                                 fluidRow(
                                                                                   column(width = 12,
                                                                                          list(
-                                                                                           helpText("Here is the matrix contained in the current metagene if any."),
+                                                                                           helpText("Here is an overview of the matrix contained in the current metagene if any."),
                                                                                            verbatimTextOutput('current_mg_matrix_content'),
                                                                                            uiOutput('current_mg_matrix_heatmap')
                                                                                          )
@@ -229,7 +229,7 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                               bsCollapsePanel("Matrix parameters", 
                                                                               list(
                                                                                 numericInput(inputId = "bin_size", value = 100, label = "bin size"),
-                                                                                selectInput(inputId = "noise", choices = c("NONE","NCIS","RPM"), label = "noise removal"),
+                                                                                selectInput(inputId = "noise", choices = c("NONE","NCIS"), label = "noise removal"),
                                                                                 selectInput(inputId = "norm", choices = c("NONE","RPM"), label = "normalization"),
                                                                                 checkboxInput(inputId = "flip", value = FALSE, label = "flip regions"),
                                                                                 checkboxInput(inputId = "use_design", value = TRUE, label = "use design"),
