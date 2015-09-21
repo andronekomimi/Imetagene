@@ -1,8 +1,8 @@
 # IMETAGENE UI.R
-library(shiny)
-library(shinyBS)
-library(shinyFiles)
-library(shinythemes)
+#library(shiny)
+#library(shinyBS)
+#library(shinyFiles)
+#library(shinythemes)
 
 footer<-function(){
   tags$div(
@@ -39,7 +39,7 @@ customNumInputs<-function(id1, id2, before = "", after = "", value1 = "", value2
 
 app_name = "Imetagene"
 
-shinyUI(fluidPage(theme = shinytheme("flatly"),
+shinyUI(fluidPage(theme = shinythemes::shinytheme("flatly"),
                   tags$head(
                     tags$style(
                       HTML("     
@@ -84,23 +84,23 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                              (but with too many BAM files, memory may become an issue). BAM files must be indexed.
                                               For instance, if you use a file names file.bam, a file named file.bam.bai must be present in the same directory."),
                                                    helpText("To compare custom regions of interest, it is possible to use a list of one or more BED files."),
-                                                   bsCollapse(id = "inputs", 
+                                                   shinyBS::bsCollapse(id = "inputs", 
                                                               open = c("Load existing metagene object"), 
                                                               multiple = FALSE,
-                                                              bsCollapsePanel("Load existing metagene object", 
+                                                              shinyBS::bsCollapsePanel("Load existing metagene object", 
                                                                               list(
-                                                                                shinyFilesButton('loadMetagene', 'Choose file',
+                                                                                shinyFiles::shinyFilesButton('loadMetagene', 'Choose file',
                                                                                                  'Please select a file', FALSE),
                                                                                 textInput(inputId = "path_load_metagene", label = ""),
-                                                                                bsAlert("load_alert")
+                                                                                shinyBS::bsAlert("load_alert")
                                                                               ), 
                                                                               style = "primary"),
-                                                              bsCollapsePanel("Create a new metagene object", 
+                                                              shinyBS::bsCollapsePanel("Create a new metagene object", 
                                                                               list(
                                                                                 fluidRow(
                                                                                   column(width = 6,
                                                                                          list(
-                                                                                           shinyFilesButton('bams', 'Select BAM files', 
+                                                                                           shinyFiles::shinyFilesButton('bams', 'Select BAM files', 
                                                                                                             'Please select a file', TRUE),
                                                                                            br(),
                                                                                            uiOutput("bam_list")
@@ -108,7 +108,7 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                   ),
                                                                                   column(width = 6,
                                                                                          list(
-                                                                                           shinyFilesButton('beds', 'Select BED files', 
+                                                                                           shinyFiles::shinyFilesButton('beds', 'Select BED files', 
                                                                                                             'Please select a file', TRUE),
                                                                                            br(),
                                                                                            uiOutput("bed_list")
@@ -118,17 +118,17 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                 br(),hr(),br(),
                                                                                 fluidRow(
                                                                                   column(width = 3,
-                                                                                         bsButton(inputId = "runMetagene", label = "Run metagene", style = "btn btn-primary", disabled = FALSE)),
+                                                                                         shinyBS::bsButton(inputId = "runMetagene", label = "Run metagene", style = "btn btn-primary", disabled = FALSE)),
                                                                                   column(width = 8,
                                                                                          downloadButton(outputId = "saveMetagene", label = "Save metagene", class = "btn btn-primary"))
                                                                                 ),
                                                                                 br(),
-                                                                                bsAlert("run_alert"),
+                                                                                shinyBS::bsAlert("run_alert"),
                                                                                 uiOutput(outputId = "resizingUI")
                                                                               ), 
                                                                               style = "primary")
                                                    ),
-                                                   bsButton(inputId = "go2design", label = "Next step", style = "btn btn-primary", disabled = TRUE, icon = icon("arrow-right"))
+                                                   shinyBS::bsButton(inputId = "go2design", label = "Next step", style = "btn btn-primary", disabled = TRUE, icon = icon("arrow-right"))
                                           ),
                                           tabPanel("DESIGN",
                                                    helpText("A design group contains a set of BAM files that, when pull together, 
@@ -136,10 +136,10 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                             the relationship between every BAM files present."),
                                                    helpText("Samples (with or without replicates) and controls can be assigned to a same design group."),
                                                    helpText("There can be as many groups as necessary. A BAM file can be assigned to more than one group."),
-                                                   bsCollapse(id = "design", 
+                                                   shinyBS::bsCollapse(id = "design", 
                                                               open = c("Current design"), 
                                                               multiple = FALSE,
-                                                              bsCollapsePanel("Current design", 
+                                                              shinyBS::bsCollapsePanel("Current design", 
                                                                               list(
                                                                                 fluidRow(
                                                                                   column(width = 12,
@@ -151,13 +151,13 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                 )
                                                                               ), 
                                                                               style = "primary"),
-                                                              bsCollapsePanel("Load existing design file", 
+                                                              shinyBS::bsCollapsePanel("Load existing design file", 
                                                                               list(
                                                                                 helpText("ADD HELP BUBBLE"),
                                                                                 fluidRow(
                                                                                   column(width = 4,
                                                                                          list(
-                                                                                           shinyFilesButton('loadDesign', 'Choose file', 
+                                                                                           shinyFiles::shinyFilesButton('loadDesign', 'Choose file', 
                                                                                                             'Please select a file', FALSE),
                                                                                            textInput(inputId = "path_load_design", label = "")
                                                                                          )
@@ -168,10 +168,10 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                          )
                                                                                   )
                                                                                 ),
-                                                                                bsAlert("load_alert_d")
+                                                                                shinyBS::bsAlert("load_alert_d")
                                                                               ), 
                                                                               style = "primary"),
-                                                              bsCollapsePanel("Create a new design", 
+                                                              shinyBS::bsCollapsePanel("Create a new design", 
                                                                               list(
                                                                                 textInput(inputId = "exp_name", label = "Experience name", value = "Exp1"),
                                                                                 fluidRow(
@@ -199,21 +199,21 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                   )
                                                                                 ),
                                                                                 br(),br(),
-                                                                                bsAlert("save_exp_alert"),
-                                                                                bsButton(inputId = "saveExp", label = "Save Experiment", style = "btn btn-primary", disabled = FALSE),
+                                                                                shinyBS::bsAlert("save_exp_alert"),
+                                                                                shinyBS::bsButton(inputId = "saveExp", label = "Save Experiment", style = "btn btn-primary", disabled = FALSE),
                                                                                 br(),br(),
                                                                                 downloadButton(outputId = "saveDesign", label = "Save Current Design")
                                                                               ), 
                                                                               style = "primary")
                                                    ),
-                                                   bsButton(inputId = "go2matrix", label = "Next step", style = "btn btn-primary", disabled = FALSE, icon = icon("arrow-right"))
+                                                   shinyBS::bsButton(inputId = "go2matrix", label = "Next step", style = "btn btn-primary", disabled = FALSE, icon = icon("arrow-right"))
                                           ),
                                           tabPanel("MATRIX",
                                                    helpText("PUT SOME DESCRIPTION HERE"),
-                                                   bsCollapse(id = "matrix", 
-                                                              open = c("Current matrix"), 
+                                                   shinyBS::bsCollapse(id = "matrix", 
+                                                              open = c("Current matrix overview"), 
                                                               multiple = TRUE,
-                                                              bsCollapsePanel("Current matrix overview", 
+                                                              shinyBS::bsCollapsePanel("Current matrix overview",
                                                                               list(
                                                                                 fluidRow(
                                                                                   column(width = 12,
@@ -226,7 +226,7 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                 )
                                                                               ), 
                                                                               style = "primary"),
-                                                              bsCollapsePanel("Matrix parameters", 
+                                                              shinyBS::bsCollapsePanel("Matrix parameters", 
                                                                               list(
                                                                                 numericInput(inputId = "bin_size", value = 100, label = "bin size"),
                                                                                 selectInput(inputId = "noise", choices = c("NONE","NCIS"), label = "noise removal"),
@@ -236,23 +236,23 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                 br(),
                                                                                 fluidRow(
                                                                                   column(width = 3,
-                                                                                         bsButton(inputId = "runMatrix", label = "Produce matrix", style = "btn btn-primary", disabled = FALSE)),
+                                                                                         shinyBS::bsButton(inputId = "runMatrix", label = "Produce matrix", style = "btn btn-primary", disabled = FALSE)),
                                                                                   column(width = 8,
                                                                                          downloadButton(outputId = "updateMetagene", label = "Save metagene", class = "btn btn-primary"))
                                                                                 ),
                                                                                 br(),
-                                                                                bsAlert("run_matrix_alert")
+                                                                                shinyBS::bsAlert("run_matrix_alert")
                                                                               )
                                                                               ,style = "primary"
                                                               )
                                                    ),
-                                                   bsButton(inputId = "go2plot", label = "Next step", style = "btn btn-primary", disabled = FALSE, icon = icon("arrow-right"))
+                                                   shinyBS::bsButton(inputId = "go2plot", label = "Next step", style = "btn btn-primary", disabled = FALSE, icon = icon("arrow-right"))
                                           ),tabPanel("PLOT",
                                                      helpText("PUT SOME DESCRIPTION HERE"),
-                                                     bsCollapse(id = "plot", 
+                                                     shinyBS::bsCollapse(id = "plot", 
                                                                 open = c("Plot parameters"), 
                                                                 multiple = FALSE,
-                                                                bsCollapsePanel("Plot parameters", 
+                                                                shinyBS::bsCollapsePanel("Plot parameters", 
                                                                                 list(
                                                                                   fluidRow(
                                                                                     column(width = 4,
@@ -276,7 +276,7 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
                                                                                     )
                                                                                   ),
                                                                                   br(),
-                                                                                  bsButton(inputId = "runPlot", label = "Plot", style = "btn btn-primary", disabled = FALSE),
+                                                                                  shinyBS::bsButton(inputId = "runPlot", label = "Plot", style = "btn btn-primary", disabled = FALSE),
                                                                                   br(),br(),
                                                                                   fluidRow(
                                                                                     column(width = 6,

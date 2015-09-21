@@ -1,8 +1,8 @@
 # IMETAGENE SERVER.R
-library(metagene)
-library(d3heatmap)
-library(ggplot2)
-source("helper.R")
+#library(metagene)
+#library(d3heatmap)
+#library(ggplot2)
+#source("helper.R")
 
 
 
@@ -58,11 +58,11 @@ shinyServer(function(input, output, session) {
   
   #### INPUTS ####
   ### LOAD EXISTING METAGENE
-  observe({
-    shinyFileChoose(input, 'loadMetagene', session=session, roots=roots,
+  shiny::observe({
+     shinyFiles::shinyFileChoose(input, 'loadMetagene', session=session, roots=roots,
                     filetypes=c('Rda'))
-    pfile = parseFilePaths(roots, input$loadMetagene)
-    updateTextInput(session, "path_load_metagene",  value = pfile$datapath)
+    pfile = shinyFiles::parseFilePaths(roots, input$loadMetagene)
+    shiny::updateTextInput(session, "path_load_metagene",  value = pfile$datapath)
     
     ## SOME CHECK : 
     if(nrow(pfile) > 0) {
@@ -71,26 +71,28 @@ shinyServer(function(input, output, session) {
       ret <- ismetagene(metagene_object)
       if(ret == 0) {
         
-        createAlert(session, "load_alert", "load_ok", title = "Loading status",
+        shinyBS::createAlert(session, "load_alert", "load_ok", title = "Loading status",
                     content = "Metagene object successfully loaded", append = FALSE, dismiss = TRUE,
                     style = "info")
-        updateButton(session, inputId = "go2design", disabled = FALSE)
+        shinyBS::updateButton(session, inputId = "go2design", disabled = FALSE)
         
         bin_def_size = 100
         
         regions_size = as.numeric(unlist(width(metagene_object$get_regions()))[1])
         bin_num =  regions_size %/% bin_def_size
-        updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
-        updateSelectInput(session, inputId = "plot_regions", choices = names(metagene_object$get_regions()), 
-                          selected = names(metagene_object$get_regions()))
+
+        shiny::updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
+        shiny::updateSelectInput(session, inputId = "plot_regions", choices = names(metagene_object$get_regions()), 
+                                 selected = names(metagene_object$get_regions()))
+
         
       } else {
         if(ret == 1) {
-          createAlert(session, "load_alert", "load_fail", title = "Loading status",
+	  shinyBS::createAlert(session, "load_alert", "load_fail", title = "Loading status",
                       content = "The loaded R object seems not be a metagene object", append = FALSE, dismiss = TRUE,
                       style="warning")
         } else {
-          createAlert(session, "load_alert", "load_fail_old", title = "Loading status",
+	  shinyBS::createAlert(session, "load_alert", "load_fail_old", title = "Loading status",
                       content = "The loaded metagene object has been generated with an old version of metagene (needed version of metagene 2.2.0).", append = FALSE, dismiss = TRUE,
                       style="warning")
         }
@@ -100,14 +102,14 @@ shinyServer(function(input, output, session) {
   })
   
   ### LOAD FILE TO CREATE METAGENE OBJECT
-  udpateBamList <- reactive({
-    shinyFileChoose(input, 'bams', session=session, roots=roots, filetypes=c('bam'))
-    pfile = parseFilePaths(roots, input$bams)
+  udpateBamList <- shiny::reactive({
+      shinyFiles::shinyFileChoose(input, 'bams', session=session, roots=roots, filetypes=c('bam'))
+    pfile = shinyFiles::parseFilePaths(roots, input$bams)
     bams <<- c(bams, as.character(pfile$datapath))
     bams <<- unique(bams)
     
     list(
-      selectInput(inputId = "edit_bams_list", 
+      shiny::selectInput(inputId = "edit_bams_list", 
                   label = "",
                   selected = bams, 
                   choices = bams,
@@ -117,18 +119,18 @@ shinyServer(function(input, output, session) {
     )  
   })
   
-  output$bam_list <- renderUI({
+  output$bam_list <- shiny::renderUI({
     udpateBamList()
   })
   
-  udpateBedList <- reactive({
-    shinyFileChoose(input, 'beds', session=session, roots=roots, filetypes=c('bed'))
-    pfile = parseFilePaths(roots, input$beds)
+  udpateBedList <- shiny::reactive({
+      shinyFiles::shinyFileChoose(input, 'beds', session=session, roots=roots, filetypes=c('bed'))
+    pfile = shinyFiles::parseFilePaths(roots, input$beds)
     beds <<- c(beds, as.character(pfile$datapath))
     beds <<- unique(beds)
     
     list(
-      selectInput(inputId = "edit_beds_list", 
+      shiny::selectInput(inputId = "edit_beds_list", 
                   label = "",
                   selected = beds, 
                   choices = beds,
@@ -139,18 +141,18 @@ shinyServer(function(input, output, session) {
     
   })
   
-  output$bed_list <- renderUI({
+  output$bed_list <- shiny::renderUI({
     udpateBedList()
   })
   
-  observe({
+  shiny::observe({
     if(is.null(input$edit_bams_list))
       return(NULL)
     bams <<- input$edit_bams_list
     
   })
   
-  observe({
+  shiny::observe({
     if(is.null(input$edit_beds_list))
       return(NULL)
     beds <<- input$edit_beds_list
@@ -158,7 +160,7 @@ shinyServer(function(input, output, session) {
   })
   
   ### RUN METAGENE
-  runMetagene <- eventReactive(input$runMetagene,{
+  runMetagene <- shiny::eventReactive(input$runMetagene,{
     ## make some check
     
     can_run <- TRUE
@@ -168,7 +170,7 @@ shinyServer(function(input, output, session) {
     if(length(bams) < 1 || length(beds) < 1) {
       msg <- "You should provide at least one BAM file and one BED file"
       can_run <- FALSE
-      createAlert(session, "run_alert", "run_fail", title = "Metagene status",
+      shinyBS::createAlert(session, "run_alert", "run_fail", title = "Metagene status",
                   content = msg, append = FALSE, dismiss = TRUE,
                   style="danger")
       return(NULL)
@@ -184,7 +186,7 @@ shinyServer(function(input, output, session) {
     
     if(length(unindexed_bams) > 0) {
       msg <- paste(unindexed_bams, collapse = ",")
-      createAlert(session, "run_alert", "run_fail2", title = "Metagene status",
+      shinyBS::createAlert(session, "run_alert", "run_fail2", title = "Metagene status",
                   content = paste0("Can't find indexes for the following BAM files : ", msg), append = FALSE, dismiss = TRUE,
                   style="danger")
       return(NULL)
@@ -203,11 +205,12 @@ shinyServer(function(input, output, session) {
       }
     }
     
+
     if(length(uncomplete_bams) > 0) {
       msg <- paste(uncomplete_bams, collapse = ",")
-      createAlert(session, "run_alert", "run_fail3", title = "Metagene status",
-                  content = paste0("Some of the wanted regions can't be found in the following BAM files : ", msg), append = FALSE, dismiss = TRUE,
-                  style="danger")
+      shinyBS::createAlert(session, "run_alert", "run_fail3", title = "Metagene status",
+                           content = paste0("Some of the wanted regions can't be found in the following BAM files : ", msg), append = FALSE, dismiss = TRUE,
+                           style="danger")
       return(NULL)
     }
     
@@ -219,18 +222,18 @@ shinyServer(function(input, output, session) {
       can_run = FALSE
       msg <- paste0("All your regions must have the same size. Do you want to shrink all the regions to ", sizes$min, 
                     "bp or extand to ", sizes$max, "bp ?")
-      createAlert(session, anchorId = "run_alert", alertId = "run_fail4", title = "Metagene status",
+      shinyBS::createAlert(session, anchorId = "run_alert", alertId = "run_fail4", title = "Metagene status",
                   content = paste0("Some of the wanted regions can't be found in the following BAM files : ", msg), append = FALSE, dismiss = TRUE,
                   style="warning")
       
-      output$resizingUI <- renderUI({
+      output$resizingUI <- shiny::renderUI({
         list(
-          fluidRow(
+          shiny::fluidRow(
             column(width = 3,
-                   bsButton(inputId = "shrink", label = paste0("Shrink to ",sizes$min), icon = icon("cut"))
+                   shinyBS::bsButton(inputId = "shrink", label = paste0("Shrink to ",sizes$min), icon = icon("cut"))
             ),
             column(width = 8,
-                   bsButton(inputId = "extand", label = paste0("Extand to ",sizes$max), icon = icon("arrows-h"))
+                   shinyBS::bsButton(inputId = "extand", label = paste0("Extand to ",sizes$max), icon = icon("arrows-h"))
             )
           )
         )
@@ -240,35 +243,37 @@ shinyServer(function(input, output, session) {
     }
     
     if(can_run) {
-      closeAlert(session, alertId = "run_alert")
-      createAlert(session, "run_alert", "run_succeed", title = "Metagene status",
+      shinyBS::closeAlert(session, alertId = "run_alert")
+      shinyBS::createAlert(session, "run_alert", "run_succeed", title = "Metagene status",
                   content = msg, append = FALSE, dismiss = TRUE,
                   style="info")
       
-      updateButton(session,inputId = "runMetagene", "Metagene running...", disabled = TRUE)
+      shinyBS::updateButton(session,inputId = "runMetagene", "Metagene running...", disabled = TRUE)
       
       tryCatch ({
         metagene_object <<- metagene$new(regions = beds, bam_files = bams, 
                                          cores = MulticoreParam(workers = 2))
-        createAlert(session, "run_alert", "run_succeed1", title = "Metagene status",
-                    content = "Done running metagene !", append = FALSE, dismiss = TRUE,
-                    style = "success")
-        updateButton(session, inputId = "go2design", disabled = FALSE)
+        shinyBS::createAlert(session, "run_alert", "run_succeed1", title = "Metagene status",
+                             content = "Done running metagene !", append = FALSE, dismiss = TRUE,
+                             style = "success")
+        shinyBS::updateButton(session, inputId = "go2design", disabled = FALSE)
         
         bin_def_size = 100
         regions_size = as.numeric(unlist(width(metagene_object$get_regions()))[1])
         bin_num =  regions_size %/% bin_def_size
-        updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
-        updateSelectInput(session, inputId = "plot_regions", choices = names(metagene_object$get_regions()), 
-                          selected = names(metagene_object$get_regions()))
+
+        shiny::updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
+        shiny::updateSelectInput(session, inputId = "plot_regions", choices = names(metagene_object$get_regions()),
+                                 selected = names(metagene_object$get_regions()))
+
         
       },error = function(e) {
-        createAlert(session, anchorId = "run_alert", alertId = "run_fail5", title = "Metagene status",
+        shinyBS::createAlert(session, anchorId = "run_alert", alertId = "run_fail5", title = "Metagene status",
                     content = as.character(e), append = FALSE, dismiss = TRUE,
                     style="danger")
         print(e)
       },warning = function(w) {
-        createAlert(session, anchorId = "run_alert", alertId = "run_fail6", title = "Metagene status",
+        shinyBS::createAlert(session, anchorId = "run_alert", alertId = "run_fail6", title = "Metagene status",
                     content = as.character(w), append = FALSE, dismiss = TRUE,
                     style="warning")
         print(w)
@@ -278,29 +283,30 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  observe({
+  shiny::observe({
     runMetagene()
   })
   
   
-  extandRegionsAndRunMetagene <- eventReactive(input$extand,{
-    updateButton(session,inputId = "extand", "Extanding...", disabled = TRUE)
-    updateButton(session,inputId = "shrink", disabled = TRUE)
-    updateButton(session,inputId = "runMetagene", "Metagene running...", disabled = TRUE)
+  extandRegionsAndRunMetagene <- shiny::eventReactive(input$extand,{
+    shinyBS::updateButton(session,inputId = "extand", "Extanding...", disabled = TRUE)
+    shinyBS::updateButton(session,inputId = "shrink", disabled = TRUE)
+    shinyBS::updateButton(session,inputId = "runMetagene", "Metagene running...", disabled = TRUE)
     regions <- resizeRegions(beds,sizes$max)
     
     tryCatch ({
       metagene_object <<- metagene$new(regions, bams)
-      createAlert(session, "run_alert", "run_succeed2", title = "Metagene status",
+      shinyBS::createAlert(session, "run_alert", "run_succeed2", title = "Metagene status",
                   content = "Done running metagene !", append = FALSE, dismiss = TRUE,
                   style = "success")
-      updateButton(session, inputId = "go2design", disabled = FALSE)
+      shinyBS::updateButton(session, inputId = "go2design", disabled = FALSE)
       
       bin_def_size = 100
       regions_size = as.numeric(unlist(width(metagene_object$get_regions()))[1])
       bin_num =  regions_size %/% bin_def_size
-      updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
-      updateSelectInput(session, inputId = "plot_regions", choices = names(metagene_object$get_regions()), 
+
+      shiny::updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
+      shiny::updateSelectInput(session, inputId = "plot_regions", choices = names(metagene_object$get_regions()), 
                         selected = names(metagene_object$get_regions()))
       
     },error = function(e) {
@@ -312,25 +318,26 @@ shinyServer(function(input, output, session) {
   })
   
   
-  shrinkRegionsAndRunMetagene <- eventReactive(input$shrink,{
-    updateButton(session,inputId = "shrink", "Shrinking...", disabled = TRUE)
-    updateButton(session,inputId = "extand", disabled = TRUE)
-    updateButton(session,inputId = "runMetagene", "Metagene running...", disabled = TRUE)
+  shrinkRegionsAndRunMetagene <- shiny::eventReactive(input$shrink,{
+    shinyBS::updateButton(session,inputId = "shrink", "Shrinking...", disabled = TRUE)
+    shinyBS::updateButton(session,inputId = "extand", disabled = TRUE)
+    shinyBS::updateButton(session,inputId = "runMetagene", "Metagene running...", disabled = TRUE)
     
     regions <- resizeRegions(bed_files = beds,new_size = sizes$min)
     
     tryCatch ({
       metagene_object <<- metagene$new(regions, bams)
-      createAlert(session, "run_alert", "run_succeed3", title = "Metagene status",
+      shinyBS::createAlert(session, "run_alert", "run_succeed3", title = "Metagene status",
                   content = "Done running metagene !", append = FALSE, dismiss = TRUE,
                   style = "success")
-      updateButton(session, inputId = "go2design", disabled = FALSE)
+      shinyBS::updateButton(session, inputId = "go2design", disabled = FALSE)
       
       bin_def_size = 100
       regions_size = as.numeric(unlist(width(metagene_object$get_regions()))[1])
       bin_num =  regions_size %/% bin_def_size
-      updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
-      updateSelectInput(session, inputId = "plot_regions", choices = names(metagene_object$get_regions()),
+
+      shiny::updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
+      shiny::updateSelectInput(session, inputId = "plot_regions", choices = names(metagene_object$get_regions()),
                         selected = names(metagene_object$get_regions()))
       
     },error = function(e) {
@@ -340,15 +347,15 @@ shinyServer(function(input, output, session) {
     })
   })
   
-  observe({
+  shiny::observe({
     extandRegionsAndRunMetagene()
   })
   
-  observe({
+  shiny::observe({
     shrinkRegionsAndRunMetagene()
   })
   
-  output$saveMetagene <- downloadHandler(
+  output$saveMetagene <- shiny::downloadHandler(
     filename = function() { 
       paste("metagene_",format(Sys.time(), "%m_%d_%y_%H_%M_%S"),'.Rda', sep='') 
     },
@@ -357,7 +364,7 @@ shinyServer(function(input, output, session) {
     }
   )
   
-  observeEvent(input$go2design, {
+  shiny::observeEvent(input$go2design, {
     # preparation des donnees pour le design
     
     if(is.null(bams)){
@@ -369,11 +376,11 @@ shinyServer(function(input, output, session) {
     
     bam_choice <- names(metagene_object$get_normalized_coverages())
     
-    updateSelectInput(session, inputId = "chips", choices = bam_choice)
-    updateSelectInput(session, inputId = "ctrls", choices = bam_choice)
+    shiny::updateSelectInput(session, inputId = "chips", choices = bam_choice)
+    shiny::updateSelectInput(session, inputId = "ctrls", choices = bam_choice)
     
     #update design
-    output$current_mg_design = renderDataTable({
+    output$current_mg_design = shiny::renderDataTable({
       metagene_object$get_design()
     })
     
@@ -384,11 +391,11 @@ shinyServer(function(input, output, session) {
   
   #### DESIGNS ####
   ### LOAD EXISTING DESIGN
-  observe({
-    shinyFileChoose(input, 'loadDesign', session=session, roots=roots,
+  shiny::observe({
+      shinyFiles::shinyFileChoose(input, 'loadDesign', session=session, roots=roots,
                     filetypes=c('','txt','csv','tsv'))
-    pfile = parseFilePaths(roots, input$loadDesign)
-    updateTextInput(session, "path_load_design",  value = pfile$datapath)
+    pfile = shinyFiles::parseFilePaths(roots, input$loadDesign)
+    shiny::updateTextInput(session, "path_load_design",  value = pfile$datapath)
     
     ## SOME CHECK : 
     if(nrow(pfile) > 0) {
@@ -399,24 +406,24 @@ shinyServer(function(input, output, session) {
         metagene_object$add_design(design, check_bam_file = FALSE)
         
         msg <- "Design successfully loaded"
-        createAlert(session, "load_alert_d", "load_d_ok", title = "Loading status",
+        shinyBS::createAlert(session, "load_alert_d", "load_d_ok", title = "Loading status",
                     content = msg, append = FALSE, dismiss = TRUE,
                     style = "info")
         
-        output$current_mg_design = renderDataTable({
+        output$current_mg_design = shiny::renderDataTable({
           design
         })
-        updateButton(session, inputId = "go2matrix", disabled = FALSE)
+	shinyBS::updateButton(session, inputId = "go2matrix", disabled = FALSE)
         
       },error = function(e) {
-        closeAlert(session,alertId = "load_d_fail_error")
+        shinyBS::closeAlert(session,alertId = "load_d_fail_error")
         print(e)
-        createAlert(session, "load_alert_d", "load_d_fail_error", title = "Loading status",
+        shinyBS::createAlert(session, "load_alert_d", "load_d_fail_error", title = "Loading status",
                     content = as.character(e), append = FALSE, dismiss = TRUE,
                     style="danger")
       },warning = function(w) {
         print(w)
-        createAlert(session, "load_alert_d", "load_d_fail_warn", title = "Loading status",
+        shinyBS::createAlert(session, "load_alert_d", "load_d_fail_warn", title = "Loading status",
                     content = as.character(w), append = FALSE, dismiss = TRUE,
                     style="warning")
       })
@@ -424,11 +431,11 @@ shinyServer(function(input, output, session) {
   })
   
   ### DISPLAY OF DESIGN IN LOADED METAGENE OBJECT
-  observeEvent(input$path_load_metagene, {
-    output$current_mg_design = renderDataTable({
+  shiny::observeEvent(input$path_load_metagene, {
+    output$current_mg_design = shiny::renderDataTable({
       if(!is.null(metagene_object)) {
         if(nrow(metagene_object$get_design()) > 0) {
-          updateButton(session, inputId = "go2matrix", disabled = FALSE)
+          shinyBS::updateButton(session, inputId = "go2matrix", disabled = FALSE)
           metagene_object$get_design()
         }
       }
@@ -437,7 +444,7 @@ shinyServer(function(input, output, session) {
   
   ### CONSTRUCT NEW DESIGN
   
-  observeEvent(input$chips, {
+  shiny::observeEvent(input$chips, {
     if(is.null(bams)){
       bams <<- names(metagene_object$get_raw_coverages())
     }
@@ -451,10 +458,10 @@ shinyServer(function(input, output, session) {
     
     control_choice <- bam_choice[! (bam_choice %in% current_chips_select)]
     
-    updateSelectInput(session, inputId = "ctrls", choices = control_choice, selected = current_ctrls_select)
+    shiny::updateSelectInput(session, inputId = "ctrls", choices = control_choice, selected = current_ctrls_select)
   })
   
-  observeEvent(input$ctrls, {
+  shiny::observeEvent(input$ctrls, {
     if(is.null(bams)){
       bams <<- names(metagene_object$get_raw_coverages())
     }
@@ -468,10 +475,10 @@ shinyServer(function(input, output, session) {
     
     chips_choice <- bam_choice[! (bam_choice %in% current_ctrls_select)]
     
-    updateSelectInput(session, inputId = "chips", choices = chips_choice, selected = current_chips_select)
+    shiny::updateSelectInput(session, inputId = "chips", choices = chips_choice, selected = current_chips_select)
   })
   
-  addExperiments <- eventReactive(input$saveExp, {
+  addExperiments <- shiny::eventReactive(input$saveExp, {
     
     ### TO DO : TEST AVANT AJOUT EXPERIENCE !!!
     
@@ -479,8 +486,10 @@ shinyServer(function(input, output, session) {
     
     if(can_add) {
       if(is.null(design)) {
-        updateButton(session, inputId = "go2matrix", disabled = FALSE)
+
+        shinyBS::updateButton(session, inputId = "go2matrix", disabled = FALSE)
         design <<- data.frame(Samples = names(metagene_object$get_raw_coverages()))
+
       }
       
       n <- nrow(design)
@@ -501,22 +510,22 @@ shinyServer(function(input, output, session) {
       design[input$exp_name] <<- v
       
       
-      output$current_mg_design = renderDataTable({
+      output$current_mg_design = shiny::renderDataTable({
         metagene_object$add_design(design, check_bam_file = FALSE)
         design
       })
       
-      updateCollapse(session, "design", open = "Current design")
+      shinyBS::updateCollapse(session, "design", open = "Current design")
     }
     
   })
   
-  observe({
+  shiny::observe({
     addExperiments()
   })
   
   ### SAVE DESIGN
-  output$saveDesign <- downloadHandler(
+  output$saveDesign <- shiny::downloadHandler(
     filename = function() {
       paste("metagene_design_",format(Sys.time(), "%m_%d_%y_%H_%M_%S"),'.csv', sep='')
     },
@@ -526,7 +535,7 @@ shinyServer(function(input, output, session) {
   )
   
   
-  observeEvent(input$go2matrix, {
+  shiny::observeEvent(input$go2matrix, {
     # preparation des donnees pour la matrix
     
     if(is.null(bams)){
@@ -552,16 +561,16 @@ shinyServer(function(input, output, session) {
         paste0(regions_names,"\n",paste(experiences_names_for_all_regions, collapse = "\n"))
       })
       
-      output$current_mg_matrix_heatmap <- renderUI({
+      output$current_mg_matrix_heatmap <- shiny::renderUI({
         list(
-          selectInput(inputId = "select_exp_4_heatmap", 
+          shiny::selectInput(inputId = "select_exp_4_heatmap", 
                       label = "Select an experiment to see its matrix",
                       selected = NULL, 
                       choices = experiences_list,
                       multiple = FALSE,
                       width = '100%',
                       selectize = TRUE),
-          d3heatmapOutput("heatmap")
+          d3heatmap::d3heatmapOutput("heatmap")
         )  
       })
     }
@@ -571,7 +580,7 @@ shinyServer(function(input, output, session) {
     session$sendCustomMessage("myCallbackHandler", "2")
   })
   
-  observeEvent(input$select_exp_4_heatmap, {
+  shiny::observeEvent(input$select_exp_4_heatmap, {
     
     selected_exp <- strsplit(x = input$select_exp_4_heatmap, split = " ")[[1]]
     m <- metagene_object$get_matrices()[[selected_exp[1]]][[selected_exp[2]]]$input
@@ -591,16 +600,17 @@ shinyServer(function(input, output, session) {
     }
     
     color = rev(heat.colors(256))
-    
-    output$heatmap <- renderD3heatmap({
-      d3heatmap(m, scale = "column", dendrogram = "none", color = "Blues", 
-                xaxis_font_size = "10px")
+
+    output$heatmap <- d3heatmap::renderD3heatmap({
+      d3heatmap::d3heatmap(m, scale = "column", dendrogram = "none", color = "Blues", 
+                           xaxis_font_size = "10px")
+
     })
   })
   
   #### MATRIX PARAMETERS
   
-  observeEvent(input$runMatrix, {
+  shiny::observeEvent(input$runMatrix, {
     if(!is.null(metagene_object)) {
       
       if(! input$use_design){
@@ -628,11 +638,12 @@ shinyServer(function(input, output, session) {
                                          normalization = norm, 
                                          flip_regions = input$flip)
         
-        updateButton(session,inputId = "runMatrix", "Producing matrix...", disabled = FALSE)
-        updateButton(session,inputId = "go2plot", disabled = FALSE)
-        updateButton(session,inputId = "updateMetagene", disabled = FALSE)
-        
-        createAlert(session, "run_matrix_alert", "run_matrix_success", title = "Produce matrix status",
+
+        shinyBS::updateButton(session,inputId = "runMatrix", "Producing matrix...", disabled = FALSE)
+        shinyBS::updateButton(session,inputId = "go2plot", disabled = FALSE)
+        shinyBS::updateButton(session,inputId = "updateMetagene", disabled = FALSE)
+
+        shinyBS::createAlert(session, "run_matrix_alert", "run_matrix_success", title = "Produce matrix status",
                     content = "Matrix successfully produced", append = FALSE, dismiss = TRUE,
                     style="success")
         
@@ -655,26 +666,26 @@ shinyServer(function(input, output, session) {
             paste0(regions_names,"\n",paste(experiences_names_for_all_regions, collapse = "\n"))
           })
           
-          output$current_mg_matrix_heatmap <- renderUI({
+          output$current_mg_matrix_heatmap <- shiny::renderUI({
             list(
-              selectInput(inputId = "select_exp_4_heatmap", 
+              shiny::selectInput(inputId = "select_exp_4_heatmap", 
                           label = "Select an experiment to see its matrix",
                           selected = NULL, 
                           choices = experiences_list,
                           multiple = FALSE,
                           width = '100%',
                           selectize = TRUE),
-              d3heatmapOutput("heatmap")
+              d3heatmap::d3heatmapOutput("heatmap")
             )  
           })
+          
+          shinyBS::updateCollapse(session, "matrix", open = "Current matrix overview")
         }
-        
-        updateCollapse(session, "matrix", open = "Current matrix overview")
-        
+
       },error = function(e) {
-        closeAlert(session,alertId = "load_d_fail_error")
+        shinyBS::closeAlert(session,alertId = "load_d_fail_error")
         print(e)
-        createAlert(session, "run_matrix_alert", "run_matrix_error", title = "Produce matrix status",
+        shinyBS::createAlert(session, "run_matrix_alert", "run_matrix_error", title = "Produce matrix status",
                     content = as.character(e), append = FALSE, dismiss = TRUE,
                     style="danger")
       })
@@ -682,7 +693,7 @@ shinyServer(function(input, output, session) {
   })
   
   
-  output$updateMetagene <- downloadHandler(
+  output$updateMetagene <- shiny::downloadHandler(
     filename = function() { 
       paste("metagene_",format(Sys.time(), "%m_%d_%y_%H_%M_%S"),'.Rda', sep='') 
     },
@@ -692,16 +703,17 @@ shinyServer(function(input, output, session) {
   )
   
   
-  observeEvent(input$go2plot, {
+  shiny::observeEvent(input$go2plot, {
     session$sendCustomMessage("myCallbackHandler", "3")
   })
   
   output$mg_plot <- renderPlot({
     return(waiting_plot("Waiting for your request..."))
   })
-  
-  observeEvent(input$runPlot, {
-    if(!is.null(metagene_object) && !is.null(metagene_object$get_matrices())) {
+
+  shiny::observeEvent(input$runPlot, {
+    if(!is.null(metagene_object) && !is.null(metagene_object$get_matrices()))  {
+
       
       
       if(! input$use_design){
@@ -710,7 +722,7 @@ shinyServer(function(input, output, session) {
         used_design <- metagene_object$get_design()
       }
       
-      updateButton(session,inputId = "runPlot", "Plotting in progress...", disabled = TRUE)
+      shinyBS::updateButton(session,inputId = "runPlot", "Plotting in progress...", disabled = TRUE)
       
       metagene_object$produce_data_frame(alpha = input$alpha, sample_count = input$sample_count)
       metagene_object$plot(region_names = input$plot_regions, range = c(-1,1), title = input$plot_title)
@@ -719,15 +731,15 @@ shinyServer(function(input, output, session) {
 #                                      bin_size = input$bin_size, alpha = input$alpha, sample_count = input$sample_count,
 #                                      range = c(-1,1), title = input$plot_title, flip_regions = input$flip)
       
-      pdf(paste0("plots/metagene_plot_",randomID,".pdf"), onefile=T, paper="USr")
+      pdf(paste0("../plots/metagene_plot_",randomID,".pdf"), onefile=T, paper="USr")
       print(metagene_object$get_plot())
       dev.off()
       
-      png(paste0("plots/metagene_plot_",randomID,".png"))
+      png(paste0("../plots/metagene_plot_",randomID,".png"))
       print(metagene_object$get_plot())
       dev.off()
       
-      updateButton(session,inputId = "runPlot", "Plotting", disabled = FALSE)
+      shinyBS::updateButton(session,inputId = "runPlot", "Plotting", disabled = FALSE)
       
       output$mg_plot <- renderPlot({
         metagene_object$get_plot()
@@ -736,21 +748,21 @@ shinyServer(function(input, output, session) {
   })
   
   
-  output$savePlotPDF <- downloadHandler(
+  output$savePlotPDF <- shiny::downloadHandler(
     filename = function() {
       "metagene_plot.pdf"
     },
     content = function(file) {
-      file.copy(paste0("plots/metagene_plot_",randomID,".pdf"), file, overwrite = TRUE)
+      file.copy(paste0("../plots/metagene_plot_",randomID,".pdf"), file, overwrite = TRUE)
     }
   )
   
-  output$savePlotPNG <- downloadHandler(
+  output$savePlotPNG <- shiny::downloadHandler(
     filename = function() {
       "metagene_plot.png"
     },
     content = function(file) {
-      file.copy(paste0("plots/metagene_plot_",randomID,".png"), file, overwrite = TRUE)
+      file.copy(paste0("../plots/metagene_plot_",randomID,".png"), file, overwrite = TRUE)
     }
   )
   

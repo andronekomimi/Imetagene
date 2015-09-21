@@ -1,0 +1,33 @@
+Package: Imetagene
+Type: Package
+Title: A graphical interface for the metagene package.
+Version: 0.99.0
+Date: 2015-09-18
+Author@R: c(person("Audrey", "Lemacon", email = "audrey.lemacon.1@ulaval.ca"),
+          person("Charles", "Joly Beauparlant", email =
+          "charles.joly-beauparlant@crchul.ulaval.ca"), person("Arnaud",
+          "Droit", email = "arnaud.droit@crchuq.ulaval.ca"))
+Author: Audrey Lemacon <audrey.lemacon.1@ulaval.ca>, Charles Joly Beauparlant
+        <charles.joly-beauparlant@crchul.ulaval.ca>, Arnaud Droit
+        <arnaud.droit@crchuq.ulaval.ca>
+Maintainer: Audrey Lemacon <audrey.lemacon.1@ulaval.ca>
+Description: This package provide a graphical user interface to the metagene
+  package. This will allow people with minimal R experience to easily complete
+  metagene analysis.
+License: Artistic-2.0
+biocViews: ChIPSeq, Genetics, MultipleComparison, Coverage, Alignment
+BugReports: https://github.com/andronekomimi/Imetagene/issues
+VignetteBuilder: knitr
+Depends:
+    R (>= 3.2.0),
+    metagene,
+    shiny
+Imports:
+    d3heatmap,
+    shinyBS,
+    shinyFiles,
+    shinythemes
+Suggests:
+    knitr,
+    BiocStyle,
+    rmarkdown
