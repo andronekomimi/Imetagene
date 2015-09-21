@@ -1,8 +1,8 @@
 # IMETAGENE SERVER.R
-library(metagene)
-library(d3heatmap)
-library(ggplot2)
-source("helper.R")
+#library(metagene)
+#library(d3heatmap)
+#library(ggplot2)
+#source("helper.R")
 
 
 
@@ -59,9 +59,9 @@ shinyServer(function(input, output, session) {
   #### INPUTS ####
   ### LOAD EXISTING METAGENE
   observe({
-    shinyFileChoose(input, 'loadMetagene', session=session, roots=roots,
+     shinyFiles::shinyFileChoose(input, 'loadMetagene', session=session, roots=roots,
                     filetypes=c('Rda'))
-    pfile = parseFilePaths(roots, input$loadMetagene)
+    pfile = shinyFiles::parseFilePaths(roots, input$loadMetagene)
     updateTextInput(session, "path_load_metagene",  value = pfile$datapath)
     
     ## SOME CHECK : 
@@ -100,8 +100,8 @@ shinyServer(function(input, output, session) {
   
   ### LOAD FILE TO CREATE METAGENE OBJECT
   udpateBamList <- reactive({
-    shinyFileChoose(input, 'bams', session=session, roots=roots, filetypes=c('bam'))
-    pfile = parseFilePaths(roots, input$bams)
+      shinyFiles::shinyFileChoose(input, 'bams', session=session, roots=roots, filetypes=c('bam'))
+    pfile = shinyFiles::parseFilePaths(roots, input$bams)
     bams <<- c(bams, as.character(pfile$datapath))
     bams <<- unique(bams)
     
@@ -121,8 +121,8 @@ shinyServer(function(input, output, session) {
   })
   
   udpateBedList <- reactive({
-    shinyFileChoose(input, 'beds', session=session, roots=roots, filetypes=c('bed'))
-    pfile = parseFilePaths(roots, input$beds)
+      shinyFiles::shinyFileChoose(input, 'beds', session=session, roots=roots, filetypes=c('bed'))
+    pfile = shinyFiles::parseFilePaths(roots, input$beds)
     beds <<- c(beds, as.character(pfile$datapath))
     beds <<- unique(beds)
     
@@ -376,9 +376,9 @@ shinyServer(function(input, output, session) {
   #### DESIGNS ####
   ### LOAD EXISTING DESIGN
   observe({
-    shinyFileChoose(input, 'loadDesign', session=session, roots=roots,
+      shinyFiles::shinyFileChoose(input, 'loadDesign', session=session, roots=roots,
                     filetypes=c('','txt','csv','tsv'))
-    pfile = parseFilePaths(roots, input$loadDesign)
+    pfile = shinyFiles::parseFilePaths(roots, input$loadDesign)
     updateTextInput(session, "path_load_design",  value = pfile$datapath)
     
     ## SOME CHECK : 
