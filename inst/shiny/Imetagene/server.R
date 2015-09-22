@@ -15,7 +15,9 @@ shinyServer(function(input, output, session) {
   sizes <- 0
   metagene_object <- NULL
   design <- NULL
+  tempfiles <- tempfile(pattern = "imetagene_", fileext = c(".pdf",".png"))
   
+  print(tempfiles)
   
   # create empty plot
   waiting_plot <- function(msg) {
@@ -31,30 +33,6 @@ shinyServer(function(input, output, session) {
         axis.ticks = element_blank())
     g
   }
-  
-  ###############################################################
-  # Copie de MHmakeRandomString 
-  # https://ryouready.wordpress.com/2008/12/18/generate-random-string-name/
-  # makeRandomID(n, length)
-  # function generates a random string random string of the
-  # length (length), made up of numbers, small and capital letters
-  
-  makeRandomID <- function(n=1, lenght=12)
-  {
-    randomString <- c(1:n)                  # initialize vector
-    for (i in 1:n)
-    {
-      randomString[i] <- paste(sample(c(0:9, letters, LETTERS),
-                                      lenght, replace=TRUE),
-                               collapse="")
-    }
-    return(randomString)
-  }
-  
-  #  > MHmakeRandomString()
-  #  [1] "XM2xjggXX19r"
-  ###############################################################
-  randomID <- makeRandomID()
   
   #### INPUTS ####
   ### LOAD EXISTING METAGENE
@@ -401,9 +379,9 @@ shinyServer(function(input, output, session) {
     if(nrow(pfile) > 0) {
       
       tryCatch ({
-        design <<- read.table(file = as.character(pfile$datapath), header = input$header)
+        design <<- read.table(file = as.character(pfile$datapath), header = input$header, stringsAsFactors = FALSE)
 #         print(names(metagene_object$get_raw_coverages()))
-        metagene_object$add_design(design, check_bam_file = FALSE)
+        metagene_object$add_design(design, check_bam_file = TRUE)
         
         msg <- "Design successfully loaded"
         shinyBS::createAlert(session, "load_alert_d", "load_d_ok", title = "Loading status",
@@ -488,7 +466,7 @@ shinyServer(function(input, output, session) {
       if(is.null(design)) {
 
         shinyBS::updateButton(session, inputId = "go2matrix", disabled = FALSE)
-        design <<- data.frame(Samples = names(metagene_object$get_raw_coverages()))
+        design <<- data.frame(Samples = names(metagene_object$get_raw_coverages()), stringsAsFactors = FALSE)
 
       }
       
@@ -511,7 +489,7 @@ shinyServer(function(input, output, session) {
       
       
       output$current_mg_design = shiny::renderDataTable({
-        metagene_object$add_design(design, check_bam_file = FALSE)
+        metagene_object$add_design(design, check_bam_file = TRUE)
         design
       })
       
@@ -632,6 +610,8 @@ shinyServer(function(input, output, session) {
       }
       
       tryCatch ({
+        shinyBS::updateButton(session,inputId = "runMatrix", "Producing matrix...", disabled = TRUE)
+        
         metagene_object$produce_matrices(design = used_design,
                                          bin_size = input$bin_size, 
                                          noise_removal = noise,
@@ -639,7 +619,7 @@ shinyServer(function(input, output, session) {
                                          flip_regions = input$flip)
         
 
-        shinyBS::updateButton(session,inputId = "runMatrix", "Producing matrix...", disabled = FALSE)
+        shinyBS::updateButton(session,inputId = "runMatrix", "Produce matrix", disabled = FALSE)
         shinyBS::updateButton(session,inputId = "go2plot", disabled = FALSE)
         shinyBS::updateButton(session,inputId = "updateMetagene", disabled = FALSE)
 
@@ -731,11 +711,11 @@ shinyServer(function(input, output, session) {
 #                                      bin_size = input$bin_size, alpha = input$alpha, sample_count = input$sample_count,
 #                                      range = c(-1,1), title = input$plot_title, flip_regions = input$flip)
       
-      pdf(paste0("../plots/metagene_plot_",randomID,".pdf"), onefile=T, paper="USr")
+      pdf(tempfiles[1], onefile=T, paper="USr")
       print(metagene_object$get_plot())
       dev.off()
       
-      png(paste0("../plots/metagene_plot_",randomID,".png"))
+      png(tempfiles[2])
       print(metagene_object$get_plot())
       dev.off()
       
@@ -753,7 +733,7 @@ shinyServer(function(input, output, session) {
       "metagene_plot.pdf"
     },
     content = function(file) {
-      file.copy(paste0("../plots/metagene_plot_",randomID,".pdf"), file, overwrite = TRUE)
+      file.copy(tempfiles[1], file, overwrite = TRUE)
     }
   )
   
@@ -762,7 +742,7 @@ shinyServer(function(input, output, session) {
       "metagene_plot.png"
     },
     content = function(file) {
-      file.copy(paste0("../plots/metagene_plot_",randomID,".png"), file, overwrite = TRUE)
+      file.copy(tempfiles[2], file, overwrite = TRUE)
     }
   )
   
