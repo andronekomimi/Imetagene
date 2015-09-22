@@ -17,8 +17,6 @@ shinyServer(function(input, output, session) {
   design <- NULL
   tempfiles <- tempfile(pattern = "imetagene_", fileext = c(".pdf",".png"))
   
-  print(tempfiles)
-  
   # create empty plot
   waiting_plot <- function(msg) {
     df = data.frame(x=c(1), 
@@ -37,8 +35,8 @@ shinyServer(function(input, output, session) {
   #### INPUTS ####
   ### LOAD EXISTING METAGENE
   shiny::observe({
-     shinyFiles::shinyFileChoose(input, 'loadMetagene', session=session, roots=roots,
-                    filetypes=c('Rda'))
+    shinyFiles::shinyFileChoose(input, 'loadMetagene', session=session, roots=roots,
+                                filetypes=c('Rda', 'RData'))
     pfile = shinyFiles::parseFilePaths(roots, input$loadMetagene)
     shiny::updateTextInput(session, "path_load_metagene",  value = pfile$datapath)
     
@@ -50,29 +48,29 @@ shinyServer(function(input, output, session) {
       if(ret == 0) {
         
         shinyBS::createAlert(session, "load_alert", "load_ok", title = "Loading status",
-                    content = "Metagene object successfully loaded", append = FALSE, dismiss = TRUE,
-                    style = "info")
+                             content = "Metagene object successfully loaded", append = FALSE, dismiss = TRUE,
+                             style = "info")
         shinyBS::updateButton(session, inputId = "go2design", disabled = FALSE)
         
         bin_def_size = 100
         
         regions_size = as.numeric(unlist(width(metagene_object$get_regions()))[1])
         bin_num =  regions_size %/% bin_def_size
-
+        
         shiny::updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
         shiny::updateSelectInput(session, inputId = "plot_regions", choices = names(metagene_object$get_regions()), 
                                  selected = names(metagene_object$get_regions()))
-
+        
         
       } else {
         if(ret == 1) {
-	  shinyBS::createAlert(session, "load_alert", "load_fail", title = "Loading status",
-                      content = "The loaded R object seems not be a metagene object", append = FALSE, dismiss = TRUE,
-                      style="warning")
+          shinyBS::createAlert(session, "load_alert", "load_fail", title = "Loading status",
+                               content = "The loaded R object seems not be a metagene object", append = FALSE, dismiss = TRUE,
+                               style="warning")
         } else {
-	  shinyBS::createAlert(session, "load_alert", "load_fail_old", title = "Loading status",
-                      content = "The loaded metagene object has been generated with an old version of metagene (needed version of metagene 2.2.0).", append = FALSE, dismiss = TRUE,
-                      style="warning")
+          shinyBS::createAlert(session, "load_alert", "load_fail_old", title = "Loading status",
+                               content = "The loaded metagene object has been generated with an old version of metagene (needed version of metagene 2.2.0).", append = FALSE, dismiss = TRUE,
+                               style="warning")
         }
       }
       
@@ -81,19 +79,19 @@ shinyServer(function(input, output, session) {
   
   ### LOAD FILE TO CREATE METAGENE OBJECT
   udpateBamList <- shiny::reactive({
-      shinyFiles::shinyFileChoose(input, 'bams', session=session, roots=roots, filetypes=c('bam'))
+    shinyFiles::shinyFileChoose(input, 'bams', session=session, roots=roots, filetypes=c('bam'))
     pfile = shinyFiles::parseFilePaths(roots, input$bams)
     bams <<- c(bams, as.character(pfile$datapath))
     bams <<- unique(bams)
     
     list(
       shiny::selectInput(inputId = "edit_bams_list", 
-                  label = "",
-                  selected = bams, 
-                  choices = bams,
-                  multiple = TRUE,
-                  width = '100%',
-                  selectize = TRUE)
+                         label = "",
+                         selected = bams, 
+                         choices = bams,
+                         multiple = TRUE,
+                         width = '100%',
+                         selectize = TRUE)
     )  
   })
   
@@ -102,19 +100,19 @@ shinyServer(function(input, output, session) {
   })
   
   udpateBedList <- shiny::reactive({
-      shinyFiles::shinyFileChoose(input, 'beds', session=session, roots=roots, filetypes=c('bed'))
+    shinyFiles::shinyFileChoose(input, 'beds', session=session, roots=roots, filetypes=c('bed'))
     pfile = shinyFiles::parseFilePaths(roots, input$beds)
     beds <<- c(beds, as.character(pfile$datapath))
     beds <<- unique(beds)
     
     list(
       shiny::selectInput(inputId = "edit_beds_list", 
-                  label = "",
-                  selected = beds, 
-                  choices = beds,
-                  multiple = TRUE,
-                  width = '100%',
-                  selectize = TRUE)
+                         label = "",
+                         selected = beds, 
+                         choices = beds,
+                         multiple = TRUE,
+                         width = '100%',
+                         selectize = TRUE)
     )
     
   })
@@ -149,8 +147,8 @@ shinyServer(function(input, output, session) {
       msg <- "You should provide at least one BAM file and one BED file"
       can_run <- FALSE
       shinyBS::createAlert(session, "run_alert", "run_fail", title = "Metagene status",
-                  content = msg, append = FALSE, dismiss = TRUE,
-                  style="danger")
+                           content = msg, append = FALSE, dismiss = TRUE,
+                           style="danger")
       return(NULL)
     }
     
@@ -165,8 +163,8 @@ shinyServer(function(input, output, session) {
     if(length(unindexed_bams) > 0) {
       msg <- paste(unindexed_bams, collapse = ",")
       shinyBS::createAlert(session, "run_alert", "run_fail2", title = "Metagene status",
-                  content = paste0("Can't find indexes for the following BAM files : ", msg), append = FALSE, dismiss = TRUE,
-                  style="danger")
+                           content = paste0("Can't find indexes for the following BAM files : ", msg), append = FALSE, dismiss = TRUE,
+                           style="danger")
       return(NULL)
     }
     
@@ -183,7 +181,7 @@ shinyServer(function(input, output, session) {
       }
     }
     
-
+    
     if(length(uncomplete_bams) > 0) {
       msg <- paste(uncomplete_bams, collapse = ",")
       shinyBS::createAlert(session, "run_alert", "run_fail3", title = "Metagene status",
@@ -201,8 +199,8 @@ shinyServer(function(input, output, session) {
       msg <- paste0("All your regions must have the same size. Do you want to shrink all the regions to ", sizes$min, 
                     "bp or extand to ", sizes$max, "bp ?")
       shinyBS::createAlert(session, anchorId = "run_alert", alertId = "run_fail4", title = "Metagene status",
-                  content = paste0("Some of the wanted regions can't be found in the following BAM files : ", msg), append = FALSE, dismiss = TRUE,
-                  style="warning")
+                           content = paste0("Some of the wanted regions can't be found in the following BAM files : ", msg), append = FALSE, dismiss = TRUE,
+                           style="warning")
       
       output$resizingUI <- shiny::renderUI({
         list(
@@ -223,8 +221,8 @@ shinyServer(function(input, output, session) {
     if(can_run) {
       shinyBS::closeAlert(session, alertId = "run_alert")
       shinyBS::createAlert(session, "run_alert", "run_succeed", title = "Metagene status",
-                  content = msg, append = FALSE, dismiss = TRUE,
-                  style="info")
+                           content = msg, append = FALSE, dismiss = TRUE,
+                           style="info")
       
       shinyBS::updateButton(session,inputId = "runMetagene", "Metagene running...", disabled = TRUE)
       
@@ -239,21 +237,21 @@ shinyServer(function(input, output, session) {
         bin_def_size = 100
         regions_size = as.numeric(unlist(width(metagene_object$get_regions()))[1])
         bin_num =  regions_size %/% bin_def_size
-
+        
         shiny::updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
         shiny::updateSelectInput(session, inputId = "plot_regions", choices = names(metagene_object$get_regions()),
                                  selected = names(metagene_object$get_regions()))
-
+        
         
       },error = function(e) {
         shinyBS::createAlert(session, anchorId = "run_alert", alertId = "run_fail5", title = "Metagene status",
-                    content = as.character(e), append = FALSE, dismiss = TRUE,
-                    style="danger")
+                             content = as.character(e), append = FALSE, dismiss = TRUE,
+                             style="danger")
         print(e)
       },warning = function(w) {
         shinyBS::createAlert(session, anchorId = "run_alert", alertId = "run_fail6", title = "Metagene status",
-                    content = as.character(w), append = FALSE, dismiss = TRUE,
-                    style="warning")
+                             content = as.character(w), append = FALSE, dismiss = TRUE,
+                             style="warning")
         print(w)
       })
       
@@ -275,17 +273,17 @@ shinyServer(function(input, output, session) {
     tryCatch ({
       metagene_object <<- metagene$new(regions, bams)
       shinyBS::createAlert(session, "run_alert", "run_succeed2", title = "Metagene status",
-                  content = "Done running metagene !", append = FALSE, dismiss = TRUE,
-                  style = "success")
+                           content = "Done running metagene !", append = FALSE, dismiss = TRUE,
+                           style = "success")
       shinyBS::updateButton(session, inputId = "go2design", disabled = FALSE)
       
       bin_def_size = 100
       regions_size = as.numeric(unlist(width(metagene_object$get_regions()))[1])
       bin_num =  regions_size %/% bin_def_size
-
+      
       shiny::updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
       shiny::updateSelectInput(session, inputId = "plot_regions", choices = names(metagene_object$get_regions()), 
-                        selected = names(metagene_object$get_regions()))
+                               selected = names(metagene_object$get_regions()))
       
     },error = function(e) {
       print(e)
@@ -306,17 +304,17 @@ shinyServer(function(input, output, session) {
     tryCatch ({
       metagene_object <<- metagene$new(regions, bams)
       shinyBS::createAlert(session, "run_alert", "run_succeed3", title = "Metagene status",
-                  content = "Done running metagene !", append = FALSE, dismiss = TRUE,
-                  style = "success")
+                           content = "Done running metagene !", append = FALSE, dismiss = TRUE,
+                           style = "success")
       shinyBS::updateButton(session, inputId = "go2design", disabled = FALSE)
       
       bin_def_size = 100
       regions_size = as.numeric(unlist(width(metagene_object$get_regions()))[1])
       bin_num =  regions_size %/% bin_def_size
-
+      
       shiny::updateNumericInput(session, inputId = "bin_count", value = bin_num, min = 1, max = regions_size)
       shiny::updateSelectInput(session, inputId = "plot_regions", choices = names(metagene_object$get_regions()),
-                        selected = names(metagene_object$get_regions()))
+                               selected = names(metagene_object$get_regions()))
       
     },error = function(e) {
       print(e)
@@ -370,8 +368,8 @@ shinyServer(function(input, output, session) {
   #### DESIGNS ####
   ### LOAD EXISTING DESIGN
   shiny::observe({
-      shinyFiles::shinyFileChoose(input, 'loadDesign', session=session, roots=roots,
-                    filetypes=c('','txt','csv','tsv'))
+    shinyFiles::shinyFileChoose(input, 'loadDesign', session=session, roots=roots,
+                                filetypes=c('','txt','csv','tsv'))
     pfile = shinyFiles::parseFilePaths(roots, input$loadDesign)
     shiny::updateTextInput(session, "path_load_design",  value = pfile$datapath)
     
@@ -380,30 +378,30 @@ shinyServer(function(input, output, session) {
       
       tryCatch ({
         design <<- read.table(file = as.character(pfile$datapath), header = input$header, stringsAsFactors = FALSE)
-#         print(names(metagene_object$get_raw_coverages()))
+        #         print(names(metagene_object$get_raw_coverages()))
         metagene_object$add_design(design, check_bam_file = TRUE)
         
         msg <- "Design successfully loaded"
         shinyBS::createAlert(session, "load_alert_d", "load_d_ok", title = "Loading status",
-                    content = msg, append = FALSE, dismiss = TRUE,
-                    style = "info")
+                             content = msg, append = FALSE, dismiss = TRUE,
+                             style = "info")
         
         output$current_mg_design = shiny::renderDataTable({
           design
         })
-	shinyBS::updateButton(session, inputId = "go2matrix", disabled = FALSE)
+        shinyBS::updateButton(session, inputId = "go2matrix", disabled = FALSE)
         
       },error = function(e) {
         shinyBS::closeAlert(session,alertId = "load_d_fail_error")
         print(e)
         shinyBS::createAlert(session, "load_alert_d", "load_d_fail_error", title = "Loading status",
-                    content = as.character(e), append = FALSE, dismiss = TRUE,
-                    style="danger")
+                             content = as.character(e), append = FALSE, dismiss = TRUE,
+                             style="danger")
       },warning = function(w) {
         print(w)
         shinyBS::createAlert(session, "load_alert_d", "load_d_fail_warn", title = "Loading status",
-                    content = as.character(w), append = FALSE, dismiss = TRUE,
-                    style="warning")
+                             content = as.character(w), append = FALSE, dismiss = TRUE,
+                             style="warning")
       })
     }
   })
@@ -464,10 +462,10 @@ shinyServer(function(input, output, session) {
     
     if(can_add) {
       if(is.null(design)) {
-
+        
         shinyBS::updateButton(session, inputId = "go2matrix", disabled = FALSE)
         design <<- data.frame(Samples = names(metagene_object$get_raw_coverages()), stringsAsFactors = FALSE)
-
+        
       }
       
       n <- nrow(design)
@@ -542,12 +540,12 @@ shinyServer(function(input, output, session) {
       output$current_mg_matrix_heatmap <- shiny::renderUI({
         list(
           shiny::selectInput(inputId = "select_exp_4_heatmap", 
-                      label = "Select an experiment to see its matrix",
-                      selected = NULL, 
-                      choices = experiences_list,
-                      multiple = FALSE,
-                      width = '100%',
-                      selectize = TRUE),
+                             label = "Select an experiment to see its matrix",
+                             selected = NULL, 
+                             choices = experiences_list,
+                             multiple = FALSE,
+                             width = '100%',
+                             selectize = TRUE),
           d3heatmap::d3heatmapOutput("heatmap")
         )  
       })
@@ -566,7 +564,7 @@ shinyServer(function(input, output, session) {
     m_dim = dim(m)
     rownames(m) <-paste0("region_",seq(1,m_dim[1]))
     colnames(m) <- paste0("position_",seq(1,m_dim[2]))
-
+    
     max_dim_1 <- 50
     max_dim_2 <- 100
     max_dim_prod <- max_dim_1 * max_dim_2
@@ -578,15 +576,23 @@ shinyServer(function(input, output, session) {
     }
     
     color = rev(heat.colors(256))
-
+    
     output$heatmap <- d3heatmap::renderD3heatmap({
       d3heatmap::d3heatmap(m, scale = "column", dendrogram = "none", color = "Blues", 
                            xaxis_font_size = "10px")
-
+      
     })
   })
   
   #### MATRIX PARAMETERS
+  
+  shiny::observe({
+    if(!input$use_design) {
+      shiny::updateSelectInput(session, inputId = "noise", choices = "NONE", selected = "NONE")
+    } else {
+      shiny::updateSelectInput(session, inputId = "noise", choices = c("NONE", "NCIS"), selected = "NONE")
+    }
+  })
   
   shiny::observeEvent(input$runMatrix, {
     if(!is.null(metagene_object)) {
@@ -618,14 +624,14 @@ shinyServer(function(input, output, session) {
                                          normalization = norm, 
                                          flip_regions = input$flip)
         
-
+        
         shinyBS::updateButton(session,inputId = "runMatrix", "Produce matrix", disabled = FALSE)
         shinyBS::updateButton(session,inputId = "go2plot", disabled = FALSE)
         shinyBS::updateButton(session,inputId = "updateMetagene", disabled = FALSE)
-
+        
         shinyBS::createAlert(session, "run_matrix_alert", "run_matrix_success", title = "Produce matrix status",
-                    content = "Matrix successfully produced", append = FALSE, dismiss = TRUE,
-                    style="success")
+                             content = "Matrix successfully produced", append = FALSE, dismiss = TRUE,
+                             style="success")
         
         ### Construction visualisation de la matrice
         if(!is.null(metagene_object) && ! is.null(metagene_object$get_matrices())) {
@@ -649,25 +655,25 @@ shinyServer(function(input, output, session) {
           output$current_mg_matrix_heatmap <- shiny::renderUI({
             list(
               shiny::selectInput(inputId = "select_exp_4_heatmap", 
-                          label = "Select an experiment to see its matrix",
-                          selected = NULL, 
-                          choices = experiences_list,
-                          multiple = FALSE,
-                          width = '100%',
-                          selectize = TRUE),
+                                 label = "Select an experiment to see its matrix",
+                                 selected = NULL, 
+                                 choices = experiences_list,
+                                 multiple = FALSE,
+                                 width = '100%',
+                                 selectize = TRUE),
               d3heatmap::d3heatmapOutput("heatmap")
             )  
           })
           
-          shinyBS::updateCollapse(session, "matrix", open = "Current matrix overview")
+          shinyBS::updateCollapse(session, "matrix", open = "Current matrix subset")
         }
-
+        
       },error = function(e) {
         shinyBS::closeAlert(session,alertId = "load_d_fail_error")
         print(e)
         shinyBS::createAlert(session, "run_matrix_alert", "run_matrix_error", title = "Produce matrix status",
-                    content = as.character(e), append = FALSE, dismiss = TRUE,
-                    style="danger")
+                             content = as.character(e), append = FALSE, dismiss = TRUE,
+                             style="danger")
       })
     }
   })
@@ -690,10 +696,10 @@ shinyServer(function(input, output, session) {
   output$mg_plot <- renderPlot({
     return(waiting_plot("Waiting for your request..."))
   })
-
+  
   shiny::observeEvent(input$runPlot, {
     if(!is.null(metagene_object) && !is.null(metagene_object$get_matrices()))  {
-
+      
       
       
       if(! input$use_design){
@@ -707,9 +713,9 @@ shinyServer(function(input, output, session) {
       metagene_object$produce_data_frame(alpha = input$alpha, sample_count = input$sample_count)
       metagene_object$plot(region_names = input$plot_regions, range = c(-1,1), title = input$plot_title)
       
-#       metagene_plot <- metagene_object$plot(design = used_design, regions_group = input$plot_regions,
-#                                      bin_size = input$bin_size, alpha = input$alpha, sample_count = input$sample_count,
-#                                      range = c(-1,1), title = input$plot_title, flip_regions = input$flip)
+      #       metagene_plot <- metagene_object$plot(design = used_design, regions_group = input$plot_regions,
+      #                                      bin_size = input$bin_size, alpha = input$alpha, sample_count = input$sample_count,
+      #                                      range = c(-1,1), title = input$plot_title, flip_regions = input$flip)
       
       pdf(tempfiles[1], onefile=T, paper="USr")
       print(metagene_object$get_plot())
@@ -746,32 +752,32 @@ shinyServer(function(input, output, session) {
     }
   )
   
-                                                   shinyBS::addPopover(session, id = "loadMetagene", title = "", content =
-                                                                       "File must be a RData file (.RData, .Rda, etc...) produced by Imetagene or metagene. If it
+  shinyBS::addPopover(session, id = "hloadMetagene", title = "", content =
+                        "File must be a RData file (.RData, .Rda, etc...) produced by Imetagene or metagene. If it
                                                                        was produced with metagene, the R object must be named \"metagene_object\".")
-                                                   shinyBS::addPopover(session, id = "bams", title = "", content =
-                                                                       "There is no hard limit in the number of BAM files that can be included in an analysis
+  shinyBS::addPopover(session, id = "hbams", title = "", content =
+                        "There is no hard limit in the number of BAM files that can be included in an analysis
                                              (but with too many BAM files, memory may become an issue). BAM files must be indexed
                                               For instance, if you use a file names file.bam, a file named file.bam.bai must be present in the same directory.")
-                                                   shinyBS::addPopover(session, id = "beds", title = "", content =
-                                                                       "To compare custom regions of interest, it is possible to use a list of one or more BED files.
+  shinyBS::addPopover(session, id = "hbeds", title = "", content =
+                        "To compare custom regions of interest, it is possible to use a list of one or more BED files.
                                                                        BED, narrowPeak and broadPeak format are supported.")
-                                                   shinyBS::addPopover(session, id = "loadDesign", title = "", content =
-                                                                       "A design file is a tab-delimited file (.tsv) that describes one or more experiments. An experiment can contain one or more replicates and controls.
+  shinyBS::addPopover(session, id = "hloadDesign", title = "", content =
+                        "A design file is a tab-delimited file (.tsv) that describes one or more experiments. An experiment can contain one or more replicates and controls.
                                                                        The first column of a design file contains the list of bam names available in the current metagene object.
                                                                        The following columns correspond to the experiments. They must have a unique name and the possible values are 0 (ignore), 1 (chip) or 2 (control).")
-                                                   shinyBS::addPopover(session, id = "bin_size", title = "", content =
-                                                                       "The size of each bin, in nucleotides")
-                                                   shinyBS::addPopover(session, id = "noise", title = "", content =
-                                                                       "Algorithm use to remove background. Requires a design file.")
-                                                   shinyBS::addPopover(session, id = "norm", title = "", content =
-                                                                       "Algorithm to use to normalize the samples.")
-                                                   shinyBS::addPopover(session, id = "flip", title = "", content =
-                                                                       "Flip the regions that are on the negative strand.")
-                                                   shinyBS::addPopover(session, id = "use_design", title = "", content =
-                                                                       "Use the design produced in the previous section.")
-                                                   shinyBS::addPopover(session, id = "alpha", title = "", content =
-                                                                       "The interval to display with a ribbon on the metagene plot. Corresponds to the confidence interval in the estimation of the mean using bootstrap.")
-                                                   shinyBS::addPopover(session, id = "sample_count", title = "", content =
-                                                                       "The number of draw for the bootstrap analysis.")
+  shinyBS::addPopover(session, id = "hbin_size", title = "", content =
+                        "The size of each bin, in nucleotides")
+  shinyBS::addPopover(session, id = "hnoise", title = "", content =
+                        "Algorithm use to remove background. Requires a design file.")
+  shinyBS::addPopover(session, id = "hnorm", title = "", content =
+                        "Algorithm to use to normalize the samples.")
+  shinyBS::addPopover(session, id = "hflip", title = "", content =
+                        "Flip the regions that are on the negative strand.")
+  shinyBS::addPopover(session, id = "huse_design", title = "", content =
+                        "Use the design produced in the previous section.")
+  shinyBS::addPopover(session, id = "halpha", title = "", content =
+                        "The interval to display with a ribbon on the metagene plot. Corresponds to the confidence interval in the estimation of the mean using bootstrap.")
+  shinyBS::addPopover(session, id = "hsample_count", title = "", content =
+                        "The number of draw for the bootstrap analysis.")
 })
