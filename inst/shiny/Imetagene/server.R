@@ -746,4 +746,11 @@ shinyServer(function(input, output, session) {
     }
   )
   
+                                                   shinyBS::addPopover(session, id = "bams", title = "BAM infos", content =
+                                                                       "There is no hard limit in the number of BAM files that can be included in an analysis
+                                             (but with too many BAM files, memory may become an issue). BAM files must be indexed
+                                              For instance, if you use a file names file.bam, a file named file.bam.bai must be present in the same directory.")
+                                                   shinyBS::addPopover(session, id = "beds", title = "BED infos", content =
+                                                                       "To compare custom regions of interest, it is possible to use a list of one or more BED files.
+                                                                       BED, narrowPeak and broadPeak format are supported.")
 })

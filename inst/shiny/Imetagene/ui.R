@@ -80,10 +80,6 @@ shinyUI(fluidPage(theme = shinythemes::shinytheme("flatly"),
                         column(width = 12,
                                navbarPage("Imetagene",
                                           tabPanel("INPUTS",
-                                                   helpText("There is no hard limit in the number of BAM files that can be included in an analysis 
-                                             (but with too many BAM files, memory may become an issue). BAM files must be indexed.
-                                              For instance, if you use a file names file.bam, a file named file.bam.bai must be present in the same directory."),
-                                                   helpText("To compare custom regions of interest, it is possible to use a list of one or more BED files."),
                                                    shinyBS::bsCollapse(id = "inputs", 
                                                               open = c("Load existing metagene object"), 
                                                               multiple = FALSE,
