@@ -1,8 +1,8 @@
 # IMETAGENE UI.R
-#library(shiny)
-#library(shinyBS)
-#library(shinyFiles)
-#library(shinythemes)
+library(shiny)
+library(shinyBS)
+library(shinyFiles)
+library(shinythemes)
 
 footer<-function(){
   tags$div(

@@ -1,8 +1,8 @@
 # IMETAGENE SERVER.R
-#library(metagene)
-#library(d3heatmap)
-#library(ggplot2)
-#source("helper.R")
+library(metagene)
+library(d3heatmap)
+library(ggplot2)
+source("helper.R")
 
 
 
