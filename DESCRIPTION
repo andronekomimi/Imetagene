@@ -26,7 +26,8 @@ Imports:
     d3heatmap,
     shinyBS,
     shinyFiles,
-    shinythemes
+    shinythemes,
+    ggplot2
 Suggests:
     knitr,
     BiocStyle,
