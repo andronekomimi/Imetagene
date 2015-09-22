@@ -746,11 +746,32 @@ shinyServer(function(input, output, session) {
     }
   )
   
-                                                   shinyBS::addPopover(session, id = "bams", title = "BAM infos", content =
+                                                   shinyBS::addPopover(session, id = "loadMetagene", title = "", content =
+                                                                       "File must be a RData file (.RData, .Rda, etc...) produced by Imetagene or metagene. If it
+                                                                       was produced with metagene, the R object must be named \"metagene_object\".")
+                                                   shinyBS::addPopover(session, id = "bams", title = "", content =
                                                                        "There is no hard limit in the number of BAM files that can be included in an analysis
                                              (but with too many BAM files, memory may become an issue). BAM files must be indexed
                                               For instance, if you use a file names file.bam, a file named file.bam.bai must be present in the same directory.")
-                                                   shinyBS::addPopover(session, id = "beds", title = "BED infos", content =
+                                                   shinyBS::addPopover(session, id = "beds", title = "", content =
                                                                        "To compare custom regions of interest, it is possible to use a list of one or more BED files.
                                                                        BED, narrowPeak and broadPeak format are supported.")
+                                                   shinyBS::addPopover(session, id = "loadDesign", title = "", content =
+                                                                       "A design file is a tab-delimited file (.tsv) that describes one or more experiments. An experiment can contain one or more replicates and controls.
+                                                                       The first column of a design file contains the list of bam names available in the current metagene object.
+                                                                       The following columns correspond to the experiments. They must have a unique name and the possible values are 0 (ignore), 1 (chip) or 2 (control).")
+                                                   shinyBS::addPopover(session, id = "bin_size", title = "", content =
+                                                                       "The size of each bin, in nucleotides")
+                                                   shinyBS::addPopover(session, id = "noise", title = "", content =
+                                                                       "Algorithm use to remove background. Requires a design file.")
+                                                   shinyBS::addPopover(session, id = "norm", title = "", content =
+                                                                       "Algorithm to use to normalize the samples.")
+                                                   shinyBS::addPopover(session, id = "flip", title = "", content =
+                                                                       "Flip the regions that are on the negative strand.")
+                                                   shinyBS::addPopover(session, id = "use_design", title = "", content =
+                                                                       "Use the design produced in the previous section.")
+                                                   shinyBS::addPopover(session, id = "alpha", title = "", content =
+                                                                       "The interval to display with a ribbon on the metagene plot. Corresponds to the confidence interval in the estimation of the mean using bootstrap.")
+                                                   shinyBS::addPopover(session, id = "sample_count", title = "", content =
+                                                                       "The number of draw for the bootstrap analysis.")
 })
