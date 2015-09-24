@@ -100,7 +100,10 @@ shinyServer(function(input, output, session) {
   })
   
   udpateBedList <- shiny::reactive({
-    shinyFiles::shinyFileChoose(input, 'beds', session=session, roots=roots, filetypes=c('bed', '.bigBed'))
+    shinyFiles::shinyFileChoose(
+      input, 'beds', session=session, roots=roots, 
+      filetypes=c('bed', 'BED', 'narrowPeak', 'broadPeak'))
+    
     pfile = shinyFiles::parseFilePaths(roots, input$beds)
     beds <<- c(beds, as.character(pfile$datapath))
     beds <<- unique(beds)
