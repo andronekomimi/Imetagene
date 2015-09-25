@@ -230,8 +230,7 @@ shinyServer(function(input, output, session) {
       shinyBS::updateButton(session,inputId = "runMetagene", "Metagene running...", disabled = TRUE)
       
       tryCatch ({
-        metagene_object <<- metagene$new(regions = beds, bam_files = bams, 
-                                         cores = MulticoreParam(workers = 2))
+        metagene_object <<- metagene$new(regions = beds, bam_files = bams)
         shinyBS::createAlert(session, "run_alert", "run_succeed1", title = "Metagene status",
                              content = "Done running metagene !", append = FALSE, dismiss = TRUE,
                              style = "success")
@@ -466,20 +465,23 @@ shinyServer(function(input, output, session) {
   addExperiments <- shiny::eventReactive(input$saveExp, {
     
     ### TO DO : TEST AVANT AJOUT EXPERIENCE !!!
-    
     can_add = TRUE
     
+    if(is.null(input$chips)) {
+      can_add = FALSE
+    }
+    
+    
     if(can_add) {
-      if(is.null(design)) {
+      if(nrow(metagene_object$get_design()) == 0) {
         
         shinyBS::updateButton(session, inputId = "go2matrix", disabled = FALSE)
         design <<- data.frame(Samples = names(metagene_object$get_raw_coverages()), stringsAsFactors = FALSE)
-        
       }
       
       n <- nrow(design)
       v = rep(0,n)
-      names(v) = bams
+      names(v) = names(metagene_object$get_raw_coverages())
       
       chips <- input$chips
       ctrls <- input$ctrls
@@ -494,13 +496,22 @@ shinyServer(function(input, output, session) {
       
       design[input$exp_name] <<- v
       
-      
       output$current_mg_design = shiny::renderDataTable({
         metagene_object$add_design(design, check_bam_file = TRUE)
         design
       })
       
+      shinyBS::createAlert(session, "save_exp_alert", "run_matrix_success", title = "Add experiment status",
+                           content = "Experiment successfully added to design", append = FALSE, dismiss = TRUE,
+                           style="success")
+      
+      
       shinyBS::updateCollapse(session, "design", open = "Current design")
+    } else {
+      
+      shinyBS::createAlert(session, "save_exp_alert", "run_matrix_fail", title = "Add experiment status",
+                           content = "Fail while adding the experiment. Please choose at least one chip", append = FALSE, dismiss = TRUE,
+                           style="danger")
     }
     
   })
@@ -604,6 +615,26 @@ shinyServer(function(input, output, session) {
   })
   
   
+  shiny::observe({
+    
+    if(!is.null(metagene_object)) {
+      
+      m <- metagene_object$get_matrices()
+      
+      if(!is.null(m)){
+        experiences_list <- c()
+        for(region_name in input$plot_regions) {
+          experiences_names <- names(m[[region_name]])
+          experiences_list <- c(experiences_list, experiences_names)
+        }
+        
+        experiences_list = unique(experiences_list)
+        
+        shiny::updateSelectInput(session, inputId = "plot_exps", choices = experiences_list, selected = experiences_list)
+      }
+    }
+  })
+  
   shiny::observeEvent(input$plot_regions, {
     
     m <- metagene_object$get_matrices()
@@ -621,7 +652,7 @@ shinyServer(function(input, output, session) {
   
   shiny::observeEvent(input$runMatrix, {
     if(!is.null(metagene_object)) {
-            
+      
       if(! input$use_design || nrow(metagene_object$get_design()) == 0) {
         used_design <- NA
       } else {
@@ -736,6 +767,7 @@ shinyServer(function(input, output, session) {
       shinyBS::updateButton(session,inputId = "runPlot", "Plotting in progress...", disabled = TRUE)
       
       metagene_object$produce_data_frame(alpha = input$alpha, sample_count = input$sample_count)
+      
       metagene_object$plot(region_names = input$plot_regions, exp_names = input$plot_exps, range = c(-1,1), title = input$plot_title)
       
       #       metagene_plot <- metagene_object$plot(design = used_design, regions_group = input$plot_regions,

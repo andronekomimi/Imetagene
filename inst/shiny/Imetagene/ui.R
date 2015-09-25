@@ -123,7 +123,7 @@ shinyUI(fluidPage(theme = shinythemes::shinytheme("flatly"),
                                           tabPanel("DESIGN",
                                                    shinyBS::bsCollapse(id = "design", 
                                                                        open = c("Current design"), 
-                                                                       multiple = FALSE,
+                                                                       multiple = TRUE,
                                                                        shinyBS::bsCollapsePanel("Current design", 
                                                                                                 list(
                                                                                                   fluidRow(
