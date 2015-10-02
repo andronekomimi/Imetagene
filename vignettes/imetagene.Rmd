@@ -25,7 +25,7 @@ This interface is based on the last version of metagene (>= 2.1.31). <br/>
 
 Metagene package "produces metagene-like plots to compare the behavior of
 DNA-interacting proteins at selected groups of features. A typical analysis
-can be done in viscinity of transcription start sites (TSS) of genes or at any
+can be done in vicinity of transcription start sites (TSS) of genes or at any
 regions of interest (such as enhancers). Multiple combinations of group of
 features and/or group of bam files can be compared in a single analysis.
 Bootstraping analysis is used to compare the groups and locate regions with

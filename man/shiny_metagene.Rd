@@ -9,10 +9,9 @@ shiny_metagene()
 \description{
 Launch interactive metagene session
 }
-\value{
-Interactive metagene session
-}
 \examples{
-shiny_metagene
+if (interactive()) {
+shiny_metagene()
+}
 }
 
