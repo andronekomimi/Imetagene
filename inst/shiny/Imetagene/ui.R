@@ -78,7 +78,7 @@ shinyUI(fluidPage(theme = shinythemes::shinytheme("flatly"),
                                                                                                   shinyFiles::shinyFilesButton('loadMetagene', 'Choose file',
                                                                                                                                'Please select a file', FALSE),
                                                                                                   shiny::actionLink(inputId = "hloadMetagene", label = "", icon = icon("question-circle")),
-                                                                                                  textInput(inputId = "path_load_metagene", label = ""),
+                                                                                                  textInput(inputId = "path_load_metagene", label = "", width = "100%"),
                                                                                                   shinyBS::bsAlert("load_alert")
                                                                                                 ), 
                                                                                                 style = "primary"),
@@ -139,15 +139,15 @@ shinyUI(fluidPage(theme = shinythemes::shinytheme("flatly"),
                                                                        shinyBS::bsCollapsePanel("Load existing design file", 
                                                                                                 list(
                                                                                                   fluidRow(
-                                                                                                    column(width = 4,
+                                                                                                    column(width = 8,
                                                                                                            list(
                                                                                                              shinyFiles::shinyFilesButton('loadDesign', 'Choose file', 
                                                                                                                                           'Please select a file', FALSE),
                                                                                                              shiny::actionLink(inputId = "hloadDesign", label = "", icon = icon("question-circle")),
-                                                                                                             textInput(inputId = "path_load_design", label = "")
+                                                                                                             textInput(inputId = "path_load_design", label = "", width = "100%")
                                                                                                            )
                                                                                                     ),
-                                                                                                    column(width = 2,
+                                                                                                    column(width = 3,
                                                                                                            list(
                                                                                                              checkboxInput(inputId = "header", label = "File with header", value = TRUE)
                                                                                                            )
