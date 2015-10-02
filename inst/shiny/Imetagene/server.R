@@ -599,7 +599,7 @@ shinyServer(function(input, output, session) {
     
     output$heatmap <- d3heatmap::renderD3heatmap({
       d3heatmap::d3heatmap(m, scale = "column", dendrogram = "none", color = "Blues", 
-                           xaxis_font_size = "10px")
+                           xaxis_font_size = "0px", yaxis_font_size = "0px")
       
     })
   })
