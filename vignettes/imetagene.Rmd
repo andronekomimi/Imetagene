@@ -134,7 +134,9 @@ combine replicates.
 ![display design](figures/matrix1.png)
 
 The `Current matrix subset` tab give you an overview of the generated matrices 
-as heatmaps.
+as heatmaps. Thanks to the package `d3heatmap`, you can hover the mouse pointer 
+over a cell to show details, drag a rectangle to zoom, and click row/column 
+ticks to highlight.
 
 ![display design](figures/matrix2.png)
 
