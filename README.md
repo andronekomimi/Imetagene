@@ -6,7 +6,7 @@ This package provide a graphical user interface to the [metagene](https://www.bi
 
 ## Bioconductor Package ##
 
-+[![Bioconductor Time](http://bioconductor.org/shields/years-in-bioc/Imetagene.svg)](http://bioconductor.org/packages/release/bioc/html/Imetagene.html "Bioconductor status")
+[![Bioconductor Time](http://bioconductor.org/shields/years-in-bioc/Imetagene.svg)](http://bioconductor.org/packages/release/bioc/html/Imetagene.html "Bioconductor status")
 
 Imetagene is now an official package of [Bioconductor](http://bioconductor.org/). The current release can be directly downloaded from their website:
 [Current release](http://www.bioconductor.org/packages/release/bioc/html/Imetagene.html)
