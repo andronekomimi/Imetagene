@@ -25,7 +25,7 @@ library(knitr)
 # Introduction
 Imetagene is a graphical user interface for metagene that is based on the shiny 
 package and is displayed in a web browser. <br/>
-This interface is based on the last version of metagene (>= 2.1.31). <br/>
+This interface is based on the last version of metagene (>= 2.4.4). <br/>
 
 Metagene package "produces metagene-like plots to compare the behavior of
 DNA-interacting proteins at selected groups of features. A typical analysis
@@ -71,7 +71,7 @@ files you want to use and the regions you want to study in BED format.
 There is no hard limit in the number of BAM files that can be included in an 
 analysis (but with too many BAM files, memory may become an issue). 
 BAM files must be indexed. For instance, if you use a file names file.bam, 
-a file named file.bam.bai must be present in the same directory.
+a file named file.bam.bai.
 
 To compare custom regions of interest, it is possible to use a list of one or 
 more BED files. BED, narrowPeak and broadPeak format are supported 
@@ -156,7 +156,7 @@ By default, metagene uses "bootstrap" to obtain a better estimation of the
 mean of enrichment for every positions in each group of regions/BAM files.
 
 The `data.frame` will be then used to plot the calculated
-values using `ggplot2`. We show a subset of the regions by using the
+values using `ggplot2` and `plotly` libraries. We show a subset of the regions by using the
 `Regions to display` and `Experiments to display` parameter. 
 The `Regions to display` correspond to the names of the regions used during the 
 initialization. The `Experiments to display` will vary depending if a design was
@@ -171,7 +171,6 @@ Here is the plot with the usage of a design
 And the same data without a design
 
 ![display design](figures/plot2.png)
-
 
 
 
